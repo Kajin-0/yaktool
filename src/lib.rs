@@ -6,6 +6,7 @@ pub mod filesystem;
 pub mod intent;
 pub mod interpret;
 pub mod journal;
+pub mod model_intent;
 pub mod plan;
 pub mod policy;
 pub mod render;

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "yaktool.model_intent.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "action", "source", "destination", "category", "age_relation", "age_days", "size_relation", "size_value", "size_unit"],
+  "properties": {
+    "schema_version": {"const": "yaktool.model_intent.v1"},
+    "action": {"enum": ["list", "search", "find_large", "move", "clarify", "unsupported"]},
+    "source": {"enum": ["none", "home", "desktop", "documents", "downloads", "pictures", "archive"]},
+    "destination": {"enum": ["none", "home", "desktop", "documents", "downloads", "pictures", "archive"]},
+    "category": {"enum": ["any", "pdf", "png", "jpeg", "text"]},
+    "age_relation": {"enum": ["none", "older_than", "newer_than", "today", "this_week"]},
+    "age_days": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+    "size_relation": {"enum": ["none", "larger_than"]},
+    "size_value": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+    "size_unit": {"enum": ["none", "KB", "MB", "GB", "KiB", "MiB", "GiB"]}
+  }
+}
