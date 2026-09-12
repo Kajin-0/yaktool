@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "yaktool.intent.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action",
+    "source",
+    "filters",
+    "destination",
+    "message"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "yaktool.intent.v1"
+    },
+    "action": {
+      "enum": [
+        "list",
+        "search",
+        "find_large",
+        "move",
+        "clarify",
+        "unsupported"
+      ]
+    },
+    "source": {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "directory_alias"
+                },
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "home",
+                    "desktop",
+                    "documents",
+                    "downloads",
+                    "pictures",
+                    "archive"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "path_bytes"
+                },
+                "value": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "description": "Linux path bytes. Plan operation paths are normalized relative paths beneath root_path; never interpreted by a shell."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "extensions",
+        "min_size_bytes",
+        "age"
+      ],
+      "properties": {
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "min_size_bytes": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "age": {
+          "anyOf": [
+            {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "relation",
+                    "days"
+                  ],
+                  "properties": {
+                    "relation": {
+                      "const": "older_than"
+                    },
+                    "days": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4294967295
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "relation",
+                    "days"
+                  ],
+                  "properties": {
+                    "relation": {
+                      "const": "newer_than"
+                    },
+                    "days": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4294967295
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "relation"
+                  ],
+                  "properties": {
+                    "relation": {
+                      "const": "today"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "relation"
+                  ],
+                  "properties": {
+                    "relation": {
+                      "const": "this_week"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "destination": {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "directory_alias"
+                },
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "home",
+                    "desktop",
+                    "documents",
+                    "downloads",
+                    "pictures",
+                    "archive"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "path_bytes"
+                },
+                "value": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  },
+                  "description": "Linux path bytes. Plan operation paths are normalized relative paths beneath root_path; never interpreted by a shell."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "message": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

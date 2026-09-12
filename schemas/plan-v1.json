@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "yaktool.plan.v1",
+  "description": "SHA-256 hashes the compact serde_json serialization of this document, in Rust struct field order. The hash is stored separately in SQLite. query is resolved preview evidence only; execution uses operations exclusively.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "created_at",
+    "action",
+    "root_path",
+    "root_identity",
+    "query",
+    "undo_of",
+    "operations",
+    "total_bytes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "yaktool.plan.v1"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "action": {
+      "enum": [
+        "move",
+        "undo"
+      ]
+    },
+    "root_path": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "description": "Linux path bytes. Plan operation paths are normalized relative paths beneath root_path; never interpreted by a shell."
+    },
+    "root_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_id",
+        "inode",
+        "mode"
+      ],
+      "properties": {
+        "device_id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "inode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    },
+    "query": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "extensions",
+            "min_size_bytes",
+            "modified_before_ns",
+            "modified_after_ns",
+            "recursive",
+            "include_hidden"
+          ],
+          "properties": {
+            "scope": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "description": "Linux path bytes. Plan operation paths are normalized relative paths beneath root_path; never interpreted by a shell."
+            },
+            "extensions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "min_size_bytes": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 18446744073709551615
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "modified_before_ns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "modified_after_ns": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recursive": {
+              "const": false
+            },
+            "include_hidden": {
+              "const": false
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "undo_of": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "operations": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "destination",
+          "source_snapshot",
+          "source_parent",
+          "destination_parent"
+        ],
+        "properties": {
+          "source": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "description": "Linux path bytes. Plan operation paths are normalized relative paths beneath root_path; never interpreted by a shell."
+          },
+          "destination": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "description": "Linux path bytes. Plan operation paths are normalized relative paths beneath root_path; never interpreted by a shell."
+          },
+          "source_snapshot": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "device_id",
+              "inode",
+              "mode",
+              "size",
+              "mtime_ns",
+              "ctime_ns"
+            ],
+            "properties": {
+              "device_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "inode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "mode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "mtime_ns": {
+                "type": "integer"
+              },
+              "ctime_ns": {
+                "type": "integer"
+              }
+            }
+          },
+          "source_parent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "device_id",
+              "inode",
+              "mode"
+            ],
+            "properties": {
+              "device_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "inode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "mode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            }
+          },
+          "destination_parent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "device_id",
+              "inode",
+              "mode"
+            ],
+            "properties": {
+              "device_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "inode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "mode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            }
+          }
+        }
+      }
+    },
+    "total_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1073741824
+    }
+  }
+}
