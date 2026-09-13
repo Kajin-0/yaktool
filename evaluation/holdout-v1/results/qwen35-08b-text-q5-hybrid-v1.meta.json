@@ -1,0 +1,31 @@
+{
+  "model": "qwen35-08b-text-q5:latest",
+  "holdout_version": "yaktool.hybrid.holdout.v1",
+  "holdout_sha256": "14db6ea9806124cf482ee1957276280ae1d8903860748e631e45e3801aa6f485",
+  "hybrid_v1_spec_sha256": "973dc7e7bb383dec8918ef51fca093e665ee14f226f7d5859f9ad06602fdae22",
+  "model_intent_schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "prompt_sha256": "5e9af40c5b4dd77af9b0c768d8fb27ba9bacec888ea19c56a153827954b59532",
+  "evaluator_commit_sha": "cd19a9778b780629c52d7d6e03633b9ba5c47c02",
+  "runner_sha256": "6b2c6616058a8c017d251672212a38940c55083abe13b8a822ca3da7419a37e4",
+  "scorer_sha256": "40630b40523be3a629b157352f92539df439802e397d3847b22faef3272a28a1",
+  "decoding": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "num_predict": 128,
+    "stream": false,
+    "think": false,
+    "raw": true,
+    "keep_alive": "10m",
+    "model": "qwen35-08b-text-q5:latest"
+  },
+  "endpoint": "http://127.0.0.1:11434/api/generate",
+  "benchmark_started_ns": 3802830106775780,
+  "benchmark_finished_ns": 3808996667260459,
+  "total_case_count": 1200,
+  "resume_count": 0,
+  "model_invocation_count": 967,
+  "timestamp": "2026-09-13T07:24:35.076117+00:00",
+  "status": "complete",
+  "scoring_note": "Scorer corrected a post-run per-record move-count aggregation bug; predictions unchanged."
+}

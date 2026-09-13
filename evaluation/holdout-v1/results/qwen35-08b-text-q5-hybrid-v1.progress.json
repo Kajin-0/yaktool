@@ -1,0 +1,10 @@
+{
+  "total_cases": 1200,
+  "completed_cases": 1200,
+  "deterministic_cases": 233,
+  "model_fallback_cases_encountered": 967,
+  "model_calls_completed": 967,
+  "last_completed_id": "case_1200",
+  "last_completion_timestamp": "2026-09-13T07:24:35.067323+00:00",
+  "elapsed_seconds": 6166.555599403
+}
