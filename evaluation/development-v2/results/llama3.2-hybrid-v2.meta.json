@@ -1,0 +1,10 @@
+{
+  "model": "llama3.2:3b",
+  "corpus_sha256": "83a2a44a22793e1a76f5cc4a7ed6e4541651f6d87c3baa67613dd1f6a1c4260f",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "instruction_sha256": "369ebcb135aa06b95f68fa984f06f0da484668b01de7e90f2753561a1f14cf85",
+  "runner_sha256": "b6e8c96ca0aa0bc6bf2735598490b5c504f6cd44dd7361f68b33d7a6c8a6804d",
+  "interface": "chat",
+  "timestamp": "2026-09-13T16:01:17.576452+00:00",
+  "case_count": 600
+}

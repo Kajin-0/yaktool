@@ -4,6 +4,8 @@ import hashlib,json,re,subprocess,sys,time,urllib.request,urllib.error
 from pathlib import Path
 from datetime import datetime,timezone
 ROOT=Path(__file__).resolve().parent; REPO=ROOT.parents[1]; GOLD=ROOT/'corpus.jsonl'; SCHEMA=REPO/'schemas/model-intent-v1.json'; HELPER=REPO/'evaluation/holdout-v1/rust_helper/target/release/yaktool_holdout_helper'; OUT=ROOT/'results/llama3.2-hybrid-v2.jsonl'; OUT.parent.mkdir(exist_ok=True)
+sys.path.insert(0,str(REPO/'evaluation'))
+from evaluate_hybrid import evidence
 INSTRUCTIONS="""You are the semantic intent parser for YakTool.
 Return exactly one JSON object matching the supplied JSON schema.
 Interpret only what the user explicitly requests.
@@ -50,7 +52,11 @@ def main():
      rsp=call(model,payload,180 if first else 60); first=False; raw=rsp.get('message',{}).get('content',''); rec.update({'model_invoked':True,'model':model,'raw_model_output':raw,'total_duration_ns':rsp.get('total_duration',0),'load_duration_ns':rsp.get('load_duration',0),'prompt_eval_count':rsp.get('prompt_eval_count',0),'eval_count':rsp.get('eval_count',0),'eval_duration_ns':rsp.get('eval_duration',0),'done_reason':rsp.get('done_reason','')});
      try:o=json.loads(raw)
      except Exception:o={'_invalid_json':True}
-     chk=helper(p,req,o); rec['model_valid']=bool(chk.get('model_valid')); final=o if rec['model_valid'] else empty();
+     chk=helper(p,req,o); rec['model_valid']=bool(chk.get('model_valid'))
+     if not rec['model_valid']: final=empty()
+     elif o.get('action')=='move':
+      ok,reason=evidence(req,o); rec['gate_passed']=ok; rec['gate_reason']=reason; final=o if ok else empty()
+     else: final=o
     except Exception as e: rec.update({'model_invoked':True,'model':model,'raw_model_output':'','model_valid':False,'infrastructure_error':str(e)}); final=empty()
    rec.update({'route':route,'final_output':final}); f.write(json.dumps(rec,separators=(',',':'))+'\n'); f.flush(); print(f'{i}/{len(gold)} {g["id"]} {route}',flush=True)
  p.terminate(); p.wait(); meta={'model':model,'corpus_sha256':sha(GOLD),'schema_sha256':sha(SCHEMA),'instruction_sha256':hashlib.sha256((INSTRUCTIONS+'\nJSON schema:\n'+schema).encode()).hexdigest(),'runner_sha256':sha(Path(__file__)),'interface':'chat','timestamp':datetime.now(timezone.utc).isoformat(),'case_count':len(gold)}; (ROOT/'results/llama3.2-hybrid-v2.meta.json').write_text(json.dumps(meta,indent=2)+'\n')
