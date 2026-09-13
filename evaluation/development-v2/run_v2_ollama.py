@@ -20,15 +20,25 @@ def model_shape(i):
  f=i.get('filters',{}); ex=f.get('extensions',[]); c='any' if not ex else ('pdf' if ex==['.pdf'] else 'png' if ex==['.png'] else 'jpeg' if set(ex)=={'.jpg','.jpeg'} else 'text' if ex==['.txt'] else 'any'); a=f.get('age') or {}; b=f.get('min_size_bytes'); return {'schema_version':'yaktool.model_intent.v1','action':i.get('action'),'source':(i.get('source') or {}).get('value','none'),'destination':(i.get('destination') or {}).get('value','none'),'category':c,'age_relation':a.get('relation','none'),'age_days':a.get('days',0),'size_relation':'none' if b is None else 'larger_than','size_value':0 if b is None else b,'size_unit':'none' if b is None else 'KB'}
 def helper(p,req,out=None): p.stdin.write(json.dumps({'request':req,'output':out})+'\n'); p.stdin.flush(); return json.loads(p.stdout.readline())
 def read_only(req):
- s=req.lower(); loc=r'(home|desktop|documents|downloads|pictures|archive)'; m=re.search(r'\b(list|show)(?: me)?(?: the files)? in '+loc+r'\b',s)
- if m:return {'schema_version':'yaktool.model_intent.v1','action':'list','source':m.group(2),'destination':'none','category':'any','age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
- m=re.search(r'\b(find|search) (.+?) in '+loc+r'\b',s)
- if m:
-  c='any';
-  for w in ('pdf','png','jpeg','text'):
-   if re.search(r'\b'+w+r'\b',m.group(2)): c=w
-  return {'schema_version':'yaktool.model_intent.v1','action':'search','source':m.group(3),'destination':'none','category':c,'age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
- return None
+ s=req.lower(); loc=r'(home|desktop|documents|downloads|pictures|archive)'; lm=re.search(r'\b(?:in|from|for)\s+'+loc+r'\b',s)
+ if not lm:
+  lm=re.search(r'\b(?:list|show)\s+'+loc+r'\b',s)
+ if not lm:
+  lm=re.search(r'\b(?:find|search)\s+'+loc+r'\b',s)
+ if not lm:return None
+ source=lm.group(1); prefix=s[:lm.end()]; action='search' if re.search(r'\bshow\s+me\b',prefix) else 'list' if re.search(r'\b(list|show)\b',prefix) else 'search' if re.search(r'\b(find|search)\b',prefix) else None
+ if not action:return None
+ c='any'
+ for w in ('pdf','png','jpeg','text'):
+  if re.search(r'\b'+w+r'\b',s): c=w
+ age=('none',0); am=re.search(r'\b(older|newer)\s+than\s+(\d+)\s+days?\b',s)
+ if am: age=('older_than' if am.group(1)=='older' else 'newer_than',int(am.group(2)))
+ elif re.search(r'\bmodified\s+today\b',s): age=('today',0)
+ elif re.search(r'\bmodified\s+this\s+week\b',s): age=('this_week',0)
+ sm=re.search(r'\blarger\s+than\s+(\d+)\s+(KB|MB|GB|KiB|MiB|GiB)\b',s,re.I); size=('larger_than',int(sm.group(1)),sm.group(2)) if sm else ('none',0,'none')
+ if action=='list': c='any'; age=('none',0); size=('none',0,'none')
+ if size[0]=='larger_than': action='find_large'
+ return {'schema_version':'yaktool.model_intent.v1','action':action,'source':source,'destination':'none','category':c,'age_relation':age[0],'age_days':age[1],'size_relation':size[0],'size_value':size[1],'size_unit':size[2]}
 def call(model,payload,timeout):
  req=urllib.request.Request('http://127.0.0.1:11434/api/chat',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
  with urllib.request.urlopen(req,timeout=timeout) as r:return json.loads(r.read().decode())
