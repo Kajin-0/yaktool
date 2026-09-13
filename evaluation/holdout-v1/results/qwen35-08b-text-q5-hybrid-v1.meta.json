@@ -7,7 +7,7 @@
   "prompt_sha256": "5e9af40c5b4dd77af9b0c768d8fb27ba9bacec888ea19c56a153827954b59532",
   "evaluator_commit_sha": "cd19a9778b780629c52d7d6e03633b9ba5c47c02",
   "runner_sha256": "6b2c6616058a8c017d251672212a38940c55083abe13b8a822ca3da7419a37e4",
-  "scorer_sha256": "40630b40523be3a629b157352f92539df439802e397d3847b22faef3272a28a1",
+  "scorer_sha256": "b3aff7ae71866ab5ae67cd3e43387cc7fa9917c329c62a524eb7e3b6cdbd9fd9",
   "decoding": {
     "temperature": 0,
     "seed": 42,
@@ -27,5 +27,5 @@
   "model_invocation_count": 967,
   "timestamp": "2026-09-13T07:24:35.076117+00:00",
   "status": "complete",
-  "scoring_note": "Scorer corrected a post-run per-record move-count aggregation bug; predictions unchanged."
+  "scoring_note": "Scorer corrected post-run aggregation/reporting bugs; predictions unchanged."
 }

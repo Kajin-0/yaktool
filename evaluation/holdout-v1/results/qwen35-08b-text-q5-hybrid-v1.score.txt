@@ -1,8 +1,8 @@
 cases: 1200
 hard-denied: 233
 RuleInterpreter-handled: 0
-model fallback: 82
-model invocation rate: 6.83%
+model fallback: 967
+model invocation rate: 80.58%
 model-invalid rejected: 789
 move-gate rejected: 71
 final exact semantic accuracy: 33.42%
