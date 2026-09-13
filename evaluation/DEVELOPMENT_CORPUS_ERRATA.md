@@ -22,3 +22,7 @@ by the deterministic RuleInterpreter.
 
 The frozen corpus is preserved unchanged for reproducibility. Do not silently correct
 these records; any corrected benchmark must be a separately versioned corpus.
+
+The machine-readable, in-memory-only correction record for development analysis is
+`evaluation/development-corpus-corrections-v1.json`. It is keyed to the source SHA
+above and does not replace the historical corpus or its benchmark results.

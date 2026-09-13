@@ -1,0 +1,29 @@
+{
+  "source_corpus_sha256": "57814869bda2da8301afcaf396e7b6cd3eb9086a0f2cfb876c29cfad9ed8fe16",
+  "corrections": [
+    {
+      "id": "case_0146",
+      "reason": "Gold size constraint is not explicitly present in the literal request; remove ungrounded larger_than 500 MB filter.",
+      "original_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"png","age_relation":"older_than","age_days":30,"size_relation":"larger_than","size_value":500,"size_unit":"MB"},
+      "corrected_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"png","age_relation":"older_than","age_days":30,"size_relation":"none","size_value":0,"size_unit":"none"}
+    },
+    {
+      "id": "case_0158",
+      "reason": "Gold size constraint is not explicitly present in the literal request; remove ungrounded larger_than 500 MB filter.",
+      "original_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"text","age_relation":"older_than","age_days":30,"size_relation":"larger_than","size_value":500,"size_unit":"MB"},
+      "corrected_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"text","age_relation":"older_than","age_days":30,"size_relation":"none","size_value":0,"size_unit":"none"}
+    },
+    {
+      "id": "case_0164",
+      "reason": "Gold size constraint is not explicitly present in the literal request; remove ungrounded larger_than 500 MB filter.",
+      "original_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"any","age_relation":"today","age_days":0,"size_relation":"larger_than","size_value":500,"size_unit":"MB"},
+      "corrected_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"any","age_relation":"today","age_days":0,"size_relation":"none","size_value":0,"size_unit":"none"}
+    },
+    {
+      "id": "case_0170",
+      "reason": "Gold size constraint is not explicitly present in the literal request; remove ungrounded larger_than 500 MB filter.",
+      "original_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"pdf","age_relation":"older_than","age_days":30,"size_relation":"larger_than","size_value":500,"size_unit":"MB"},
+      "corrected_expected": {"schema_version":"yaktool.model_intent.v1","action":"move","source":"home","destination":"desktop","category":"pdf","age_relation":"older_than","age_days":30,"size_relation":"none","size_value":0,"size_unit":"none"}
+    }
+  ]
+}
