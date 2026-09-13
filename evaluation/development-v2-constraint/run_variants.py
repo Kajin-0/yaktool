@@ -21,7 +21,7 @@ def call(payload,t):
  q=urllib.request.Request('http://127.0.0.1:11434/api/chat',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
  with urllib.request.urlopen(q,timeout=t) as r:return json.loads(r.read().decode())
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--variant',choices=['A','B','C','D'],required=True);ap.add_argument('--output',required=True);a=ap.parse_args(); schema=SCHEMA.read_text(); rows=[json.loads(x) for x in (ROOT/'corpus.jsonl').read_text().splitlines()]; out=Path(a.output); old={}
+ ap=argparse.ArgumentParser();ap.add_argument('--variant',choices=['A','B','C','D'],required=True);ap.add_argument('--output',required=True);ap.add_argument('--corpus',default=str(ROOT/'corpus.jsonl'));a=ap.parse_args(); schema=SCHEMA.read_text(); rows=[json.loads(x) for x in Path(a.corpus).read_text().splitlines()]; out=Path(a.output); old={}
  if out.exists(): old={json.loads(x)['id'] for x in out.read_text().splitlines()}
  h=subprocess.Popen([str(HELPER)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True,bufsize=1); first=True
  with out.open('a') as f:
