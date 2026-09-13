@@ -1,0 +1,16 @@
+variant-A.jsonl exact 34.50 action 34.50 valid 100.00 accepted 128 correct 128 unsafe 0 wrong 0 precision 100.00 recall 19.69
+constraint groups {0: (10, 20, 50.0), 2: (63, 80, 78.75), 3: (65, 140, 46.42857142857143), 4: (0, 100, 0.0), 5: (0, 60, 0.0)} drops {'category': 235, 'age': 235, 'size': 160} invented {'category': 0, 'age': 0, 'size': 0}
+classes {'two_constraint_moves': (63, 80, 78.75), 'three_constraint_moves': (44, 100, 44.0), 'four_constraint_moves': (0, 100, 0.0), 'five_constraint_moves': (0, 60, 0.0), 'paraphrased_multi_constraint': (21, 40, 52.5), 'ambiguous_adversarial_controls': (10, 20, 50.0)}
+latency median/p95 3.308777098 4.0700481464
+variant-B.jsonl exact 36.50 action 36.50 valid 100.00 accepted 136 correct 136 unsafe 0 wrong 0 precision 100.00 recall 20.92
+constraint groups {0: (10, 20, 50.0), 2: (64, 80, 80.0), 3: (72, 140, 51.42857142857142), 4: (0, 100, 0.0), 5: (0, 60, 0.0)} drops {'category': 228, 'age': 228, 'size': 160} invented {'category': 0, 'age': 0, 'size': 0}
+classes {'two_constraint_moves': (64, 80, 80.0), 'three_constraint_moves': (53, 100, 53.0), 'four_constraint_moves': (0, 100, 0.0), 'five_constraint_moves': (0, 60, 0.0), 'paraphrased_multi_constraint': (19, 40, 47.5), 'ambiguous_adversarial_controls': (10, 20, 50.0)}
+latency median/p95 3.321955939 4.1612648346
+variant-C.jsonl exact 33.25 action 33.25 valid 100.00 accepted 123 correct 123 unsafe 0 wrong 0 precision 100.00 recall 18.92
+constraint groups {0: (10, 20, 50.0), 2: (64, 80, 80.0), 3: (59, 140, 42.142857142857146), 4: (0, 100, 0.0), 5: (0, 60, 0.0)} drops {'category': 241, 'age': 241, 'size': 160} invented {'category': 0, 'age': 0, 'size': 0}
+classes {'two_constraint_moves': (64, 80, 80.0), 'three_constraint_moves': (42, 100, 42.0), 'four_constraint_moves': (0, 100, 0.0), 'five_constraint_moves': (0, 60, 0.0), 'paraphrased_multi_constraint': (17, 40, 42.5), 'ambiguous_adversarial_controls': (10, 20, 50.0)}
+latency median/p95 6.380509761 8.146434409
+variant-D.jsonl exact 34.75 action 34.75 valid 100.00 accepted 129 correct 129 unsafe 0 wrong 0 precision 100.00 recall 19.85
+constraint groups {0: (10, 20, 50.0), 2: (64, 80, 80.0), 3: (65, 140, 46.42857142857143), 4: (0, 100, 0.0), 5: (0, 60, 0.0)} drops {'category': 235, 'age': 235, 'size': 160} invented {'category': 0, 'age': 0, 'size': 0}
+classes {'two_constraint_moves': (64, 80, 80.0), 'three_constraint_moves': (50, 100, 50.0), 'four_constraint_moves': (0, 100, 0.0), 'five_constraint_moves': (0, 60, 0.0), 'paraphrased_multi_constraint': (15, 40, 37.5), 'ambiguous_adversarial_controls': (10, 20, 50.0)}
+latency median/p95 6.320014392 7.48054051
