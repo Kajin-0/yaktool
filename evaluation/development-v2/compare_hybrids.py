@@ -5,13 +5,14 @@ from collections import Counter,defaultdict
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1])); from score import valid
 from evaluate_hybrid import hard_deny,evidence
+from run_v2_ollama import read_only
 R=Path(__file__).resolve().parent
 EMPTY=lambda a='clarify': {'schema_version':'yaktool.model_intent.v1','action':a,'source':'none','destination':'none','category':'any','age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
 def load(p): return [json.loads(x) for x in Path(p).read_text().splitlines()]
 def classify(g,o,version):
  req=g['request']; raw=o.get('raw_model_output',''); pred=o.get('model_output',o.get('final_output'))
  if hard_deny(req): return 'hard_deny',EMPTY('unsupported')
- if version=='v2' and o.get('route')=='v2_readonly': return 'v2_readonly',o['final_output']
+ if version=='v2' and read_only(req): return 'v2_readonly',read_only(req)
  if o.get('route')=='rule_handled': return 'rule_handled',o['final_output']
  if not o.get('model_valid',valid(pred)): return 'model_invalid_rejected',EMPTY()
  if isinstance(pred,dict) and pred.get('action')=='move':

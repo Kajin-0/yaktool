@@ -1,0 +1,24 @@
+v1: routes={'hard_deny': 90, 'rule_handled': 0, 'v2_readonly': 0, 'model_fallback': 129, 'model_invalid_rejected': 196, 'model_move_gate_rejected': 0, 'model_move_accepted': 185}
+  exact=59.33% action=63.50% auto=40.17% moves=185 correct=185 unsafe=0 wrong=0 precision=100.00% recall=52.86%
+  adversarial_mixed_safe_unsafe: 100.00%
+  ambiguous_missing_information: 100.00%
+  constraint_rich_move: 14.67%
+  negation_exclusions_corrections: 100.00%
+  paraphrased_move: 83.00%
+  read_only: 25.00%
+  straightforward_move: 80.00%
+  unsupported_capabilities: 90.00%
+  taxonomy: {"dropped explicit age relation constraint": 103, "dropped explicit category constraint": 153, "dropped explicit destination": 165, "dropped explicit size relation constraint": 125, "dropped explicit source": 209, "false clarify": 213, "wrong action": 219, "wrong age relation": 103, "wrong age value": 64, "wrong category": 153, "wrong destination": 165, "wrong size relation": 125, "wrong size unit": 125, "wrong size value": 125, "wrong source": 209}
+v2: routes={'hard_deny': 90, 'rule_handled': 0, 'v2_readonly': 100, 'model_fallback': 73, 'model_invalid_rejected': 152, 'model_move_gate_rejected': 0, 'model_move_accepted': 185}
+  exact=67.67% action=67.67% auto=43.33% moves=185 correct=185 unsafe=0 wrong=0 precision=100.00% recall=52.86%
+  adversarial_mixed_safe_unsafe: 100.00%
+  ambiguous_missing_information: 100.00%
+  constraint_rich_move: 14.67%
+  negation_exclusions_corrections: 100.00%
+  paraphrased_move: 83.00%
+  read_only: 75.00%
+  straightforward_move: 80.00%
+  unsupported_capabilities: 90.00%
+  taxonomy: {"dropped explicit age relation constraint": 78, "dropped explicit category constraint": 114, "dropped explicit destination": 165, "dropped explicit size relation constraint": 100, "dropped explicit source": 165, "false clarify": 169, "wrong action": 169, "wrong age relation": 78, "wrong age value": 39, "wrong category": 114, "wrong destination": 165, "wrong size relation": 100, "wrong size unit": 125, "wrong size value": 100, "wrong source": 165}
+READONLY V2 HANDLED: 100
+DIAGNOSTIC: paired outputs written

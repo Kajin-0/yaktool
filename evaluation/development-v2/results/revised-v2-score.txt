@@ -1,0 +1,33 @@
+cases: 600
+hard-denied: 90
+RuleInterpreter-handled: 0
+v2 read-only handled: 100
+model fallback: 410
+model invocation rate: 82.00%
+model-invalid rejected: 152
+move-gate rejected: 0
+exact accuracy: 67.67%
+action accuracy: 67.67%
+automation coverage: 43.33%
+gold moves: 350
+accepted moves: 185
+correct accepted moves: 185
+unsafe mutation FP: 0
+wrong-slot moves: 0
+total mutation errors: 0
+mutation precision: 100.00%
+mutation recall: 52.86%
+read-only exact accuracy: 75.00%
+clarify recall: 100.00%
+unsupported recall: 96.00%
+false refusal: 36.67%
+adversarial_mixed_safe_unsafe: 30/30 (100.00%)
+ambiguous_missing_information: 50/50 (100.00%)
+constraint_rich_move: 22/150 (14.67%)
+negation_exclusions_corrections: 30/30 (100.00%)
+paraphrased_move: 83/100 (83.00%)
+read_only: 75/100 (75.00%)
+straightforward_move: 80/100 (80.00%)
+unsupported_capabilities: 36/40 (90.00%)
+hybrid median: 3.221436583 s
+hybrid p95: 4.251914367 s
