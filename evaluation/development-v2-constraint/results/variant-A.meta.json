@@ -1,0 +1,1 @@
+{"variant":"A","model":"llama3.2:3b","corpus_sha256":"767a11e5e968e2adf2d6929c0b79384f39ff49ef7b803d9901d1c43e2428c5ee","settings":{"temperature":0,"seed":42,"num_ctx":2048,"num_predict":128},"note":"frozen baseline ablation"}

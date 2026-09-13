@@ -1,0 +1,10 @@
+{
+  "version": "development-v2-constraint-1",
+  "seed": 20260914,
+  "case_count": 400,
+  "class_counts": {"two_constraint_moves": 80, "three_constraint_moves": 100, "four_constraint_moves": 100, "five_constraint_moves": 60, "paraphrased_multi_constraint": 40, "ambiguous_adversarial_controls": 20},
+  "corpus_sha256": "767a11e5e968e2adf2d6929c0b79384f39ff49ef7b803d9901d1c43e2428c5ee",
+  "schema": "schemas/model-intent-v1.json",
+  "generator": "generate.py",
+  "validator": "validate.py"
+}
