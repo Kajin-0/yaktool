@@ -1,0 +1,13 @@
+{
+  "version": "yaktool.hybrid.development.v2",
+  "seed": 20260913,
+  "case_count": 600,
+  "corpus_sha256": "83a2a44a22793e1a76f5cc4a7ed6e4541651f6d87c3baa67613dd1f6a1c4260f",
+  "generator": "generate.py",
+  "validator": "validate.py",
+  "model_intent_schema_version": "yaktool.model_intent.v1",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "generator_sha256": "f7575b4adbbee09682c3c9671dffe3b6d44cfbd2967ed9468c357023c7c5242f",
+  "validator_sha256": "3e895ed24bc5ea8f2c7a7a6bec7eb2740edd0bb5c66d32a4cb5052080a9ef830",
+  "hybrid_v2_spec_sha256": "9fa317080b668df4904f652ca57203f0fae0ea4f52cf73daa4e963fbd251afbe"
+}
