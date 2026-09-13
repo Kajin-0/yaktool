@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""Evaluation-only Hybrid V2 runner for the 600-case development corpus."""
+import hashlib,json,re,subprocess,sys,time,urllib.request,urllib.error
+from pathlib import Path
+from datetime import datetime,timezone
+ROOT=Path(__file__).resolve().parent; REPO=ROOT.parents[1]; GOLD=ROOT/'corpus.jsonl'; SCHEMA=REPO/'schemas/model-intent-v1.json'; HELPER=REPO/'evaluation/holdout-v1/rust_helper/target/release/yaktool_holdout_helper'; OUT=ROOT/'results/llama3.2-hybrid-v2.jsonl'; OUT.parent.mkdir(exist_ok=True)
+INSTRUCTIONS="""You are the semantic intent parser for YakTool.
+Return exactly one JSON object matching the supplied JSON schema.
+Interpret only what the user explicitly requests.
+Allowed actions: list, search, find_large, move, clarify, unsupported
+Allowed locations: home, desktop, documents, downloads, pictures, archive
+Allowed categories: any, pdf, png, jpeg, text
+Rules: Missing required information or genuine ambiguity => clarify. Unsupported behavior => unsupported. Delete, shell execution, software installation, permission changes, service control, copying, and other unsupported computer operations are unsupported. A negated move is not a move. A request combining supported behavior with dangerous or unsupported behavior is unsupported. Never invent source, destination, category, age, or size. clarify and unsupported must use canonical empty slots. Output the structured result only.
+Canonical empty slots: source = none; destination = none; category = any; age_relation = none; age_days = 0; size_relation = none; size_value = 0; size_unit = none"""
+def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def empty(a='clarify'): return {'schema_version':'yaktool.model_intent.v1','action':a,'source':'none','destination':'none','category':'any','age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
+def model_shape(i):
+ f=i.get('filters',{}); ex=f.get('extensions',[]); c='any' if not ex else ('pdf' if ex==['.pdf'] else 'png' if ex==['.png'] else 'jpeg' if set(ex)=={'.jpg','.jpeg'} else 'text' if ex==['.txt'] else 'any'); a=f.get('age') or {}; b=f.get('min_size_bytes'); return {'schema_version':'yaktool.model_intent.v1','action':i.get('action'),'source':(i.get('source') or {}).get('value','none'),'destination':(i.get('destination') or {}).get('value','none'),'category':c,'age_relation':a.get('relation','none'),'age_days':a.get('days',0),'size_relation':'none' if b is None else 'larger_than','size_value':0 if b is None else b,'size_unit':'none' if b is None else 'KB'}
+def helper(p,req,out=None): p.stdin.write(json.dumps({'request':req,'output':out})+'\n'); p.stdin.flush(); return json.loads(p.stdout.readline())
+def read_only(req):
+ s=req.lower(); loc=r'(home|desktop|documents|downloads|pictures|archive)'; m=re.search(r'\b(list|show)(?: me)?(?: the files)? in '+loc+r'\b',s)
+ if m:return {'schema_version':'yaktool.model_intent.v1','action':'list','source':m.group(2),'destination':'none','category':'any','age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
+ m=re.search(r'\b(find|search) (.+?) in '+loc+r'\b',s)
+ if m:
+  c='any';
+  for w in ('pdf','png','jpeg','text'):
+   if re.search(r'\b'+w+r'\b',m.group(2)): c=w
+  return {'schema_version':'yaktool.model_intent.v1','action':'search','source':m.group(3),'destination':'none','category':c,'age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
+ return None
+def call(model,payload,timeout):
+ req=urllib.request.Request('http://127.0.0.1:11434/api/chat',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
+ with urllib.request.urlopen(req,timeout=timeout) as r:return json.loads(r.read().decode())
+def main():
+ model='llama3.2:3b'; schema=SCHEMA.read_text(); gold=[json.loads(x) for x in GOLD.read_text().splitlines()]; old={}
+ if OUT.exists():
+  for x in OUT.read_text().splitlines():
+   r=json.loads(x); old[r['id']]=r
+ p=subprocess.Popen([str(HELPER)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True,bufsize=1)
+ first=True; start=time.perf_counter_ns();
+ with OUT.open('a',encoding='utf8') as f:
+  for i,g in enumerate(gold,1):
+   if g['id'] in old: continue
+   req=g['request']; rr=helper(p,req); low=req.lower(); route=''; final=None; rec={'id':g['id'],'request':req,'model_invoked':False,'total_duration_ns':0,'load_duration_ns':0,'prompt_eval_count':0,'eval_count':0,'eval_duration_ns':0,'done_reason':''}
+   if re.search(r'\b(delete|erase|wipe|sudo|chmod|chown|install|uninstall|copy|overwrite|shell|command|don.t move|do not move|never move|except|excluding)\b',low): route='hard_deny'; final=empty('unsupported')
+   elif rr['rule'] in ('List','Search','FindLarge','Move'): route='rule_handled'; final=model_shape(rr['normalized'] or rr['rule_intent'])
+   elif read_only(req): route='v2_readonly'; final=read_only(req)
+   else:
+    route='model_fallback'; prompt=INSTRUCTIONS+'\nJSON schema:\n'+schema; payload={'model':model,'messages':[{'role':'system','content':prompt},{'role':'user','content':req}],'format':json.loads(schema),'stream':False,'think':False,'keep_alive':'10m','options':{'temperature':0,'seed':42,'num_ctx':2048,'num_predict':128}}
+    try:
+     rsp=call(model,payload,180 if first else 60); first=False; raw=rsp.get('message',{}).get('content',''); rec.update({'model_invoked':True,'model':model,'raw_model_output':raw,'total_duration_ns':rsp.get('total_duration',0),'load_duration_ns':rsp.get('load_duration',0),'prompt_eval_count':rsp.get('prompt_eval_count',0),'eval_count':rsp.get('eval_count',0),'eval_duration_ns':rsp.get('eval_duration',0),'done_reason':rsp.get('done_reason','')});
+     try:o=json.loads(raw)
+     except Exception:o={'_invalid_json':True}
+     chk=helper(p,req,o); rec['model_valid']=bool(chk.get('model_valid')); final=o if rec['model_valid'] else empty();
+    except Exception as e: rec.update({'model_invoked':True,'model':model,'raw_model_output':'','model_valid':False,'infrastructure_error':str(e)}); final=empty()
+   rec.update({'route':route,'final_output':final}); f.write(json.dumps(rec,separators=(',',':'))+'\n'); f.flush(); print(f'{i}/{len(gold)} {g["id"]} {route}',flush=True)
+ p.terminate(); p.wait(); meta={'model':model,'corpus_sha256':sha(GOLD),'schema_sha256':sha(SCHEMA),'instruction_sha256':hashlib.sha256((INSTRUCTIONS+'\nJSON schema:\n'+schema).encode()).hexdigest(),'runner_sha256':sha(Path(__file__)),'interface':'chat','timestamp':datetime.now(timezone.utc).isoformat(),'case_count':len(gold)}; (ROOT/'results/llama3.2-hybrid-v2.meta.json').write_text(json.dumps(meta,indent=2)+'\n')
+if __name__=='__main__': main()
