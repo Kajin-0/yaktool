@@ -1,0 +1,36 @@
+{
+  "model": "qwen35-08b-text-q5:latest",
+  "parameters": "772.85M",
+  "quantization": "Q5_K_M",
+  "reported_model_size": "646 MB",
+  "ollama_version": "ollama version is 0.32.15",
+  "git_sha": "2bed4aa64785d782761f948e18b0cc4679205323",
+  "corpus_sha256": "57814869bda2da8301afcaf396e7b6cd3eb9086a0f2cfb876c29cfad9ed8fe16",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "prompt_sha256": "5e9af40c5b4dd77af9b0c768d8fb27ba9bacec888ea19c56a153827954b59532",
+  "runner_sha256": "cf7ba9d723cf6ebaaf9467bf2316b501cce63293d6e1d634544ccad2a7fa6840",
+  "timestamp": "2026-09-13T01:34:22.664500+00:00",
+  "endpoint": "http://127.0.0.1:11434/api/generate",
+  "decoding": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "num_predict": 128,
+    "stream": false,
+    "think": false,
+    "raw": true,
+    "keep_alive": "10m",
+    "model": "qwen35-08b-text-q5:latest"
+  },
+  "num_cases": 300,
+  "benchmark_started_ns": 3786631388749648,
+  "benchmark_finished_ns": 3787984229028145,
+  "total_wall_time_ns": 1352840278497,
+  "first_record": {
+    "id": "case_0001",
+    "total_duration_ns": 14597862011,
+    "load_duration_ns": 8721065069,
+    "prompt_eval_count": 649,
+    "eval_count": 95
+  }
+}

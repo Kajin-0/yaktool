@@ -1,0 +1,42 @@
+{
+  "model": "qwen2.5:3b-instruct",
+  "architecture": "qwen2",
+  "parameters": "3.1B",
+  "quantization": "Q4_K_M",
+  "context_length": 32768,
+  "template": "Ollama chat instruction template (qwen2)",
+  "capabilities": [
+    "completion",
+    "tools"
+  ],
+  "ollama_version": "ollama version is 0.32.15",
+  "interface": "chat",
+  "endpoint": "http://127.0.0.1:11434/api/chat",
+  "git_sha": "2bed4aa64785d782761f948e18b0cc4679205323",
+  "corpus_sha256": "57814869bda2da8301afcaf396e7b6cd3eb9086a0f2cfb876c29cfad9ed8fe16",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "instruction_sha256": "fcd5fef800f5e14a1e3c812f8c86564745a6236e6382c0b4bf91889fb0574ee9",
+  "runner_sha256": "e7d0d83b325d995bcac39e3e1c6c50f4fe3bfe0b0bb513cddb9c313f05595f6f",
+  "timestamp": "2026-09-13T02:02:17.646836+00:00",
+  "decoding": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "num_predict": 128,
+    "stream": false,
+    "think": false,
+    "keep_alive": "10m",
+    "model": "qwen2.5:3b-instruct"
+  },
+  "num_cases": 300,
+  "benchmark_started_ns": 3788725786283662,
+  "benchmark_finished_ns": 3789659209834582,
+  "total_wall_time_ns": 933423550920,
+  "first_record": {
+    "id": "case_0001",
+    "total_duration_ns": 34911691666,
+    "load_duration_ns": 26584869360,
+    "prompt_eval_count": 615,
+    "eval_count": 85
+  }
+}

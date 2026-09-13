@@ -1,0 +1,42 @@
+{
+  "model": "llama3.2:3b",
+  "architecture": "llama",
+  "parameters": "3.2B",
+  "quantization": "Q4_K_M",
+  "context_length": 131072,
+  "template": "Llama 3.2 chat instruction template",
+  "capabilities": [
+    "completion",
+    "tools"
+  ],
+  "ollama_version": "ollama version is 0.32.15",
+  "interface": "chat",
+  "endpoint": "http://127.0.0.1:11434/api/chat",
+  "git_sha": "2bed4aa64785d782761f948e18b0cc4679205323",
+  "corpus_sha256": "57814869bda2da8301afcaf396e7b6cd3eb9086a0f2cfb876c29cfad9ed8fe16",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "instruction_sha256": "fcd5fef800f5e14a1e3c812f8c86564745a6236e6382c0b4bf91889fb0574ee9",
+  "runner_sha256": "500ce878235ff0335bca7f59da9ccf046235d2d7d18cd5216675a929987f8242",
+  "timestamp": "2026-09-13T02:29:25.839795+00:00",
+  "decoding": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "num_predict": 128,
+    "stream": false,
+    "think": false,
+    "keep_alive": "10m",
+    "model": "llama3.2:3b"
+  },
+  "num_cases": 300,
+  "benchmark_started_ns": 3790297345544126,
+  "benchmark_finished_ns": 3791287295383602,
+  "total_wall_time_ns": 989949839476,
+  "first_record": {
+    "id": "case_0001",
+    "total_duration_ns": 20325017389,
+    "load_duration_ns": 10171921057,
+    "prompt_eval_count": 605,
+    "eval_count": 85
+  }
+}

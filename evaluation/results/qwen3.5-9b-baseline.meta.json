@@ -1,0 +1,45 @@
+{
+  "model": "qwen3.5:9b",
+  "architecture": "qwen35",
+  "parameters": "9.7B",
+  "quantization": "Q4_K_M",
+  "context_length": 262144,
+  "template": "{{ .Prompt }}",
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "ollama_version": "ollama version is 0.32.15",
+  "interface": "generate",
+  "endpoint": "http://127.0.0.1:11434/api/generate",
+  "git_sha": "2bed4aa64785d782761f948e18b0cc4679205323",
+  "corpus_sha256": "57814869bda2da8301afcaf396e7b6cd3eb9086a0f2cfb876c29cfad9ed8fe16",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "instruction_sha256": "f59b114665239441cd28322804640dd2948ce4ad0ffc1a81384645a88972e121",
+  "runner_sha256": "78fc63039110cf1e7e22bdcf9f5e5f07566c6ab4c03729eb74e70fdd7b591dd5",
+  "timestamp": "2026-09-13T04:14:32.333273+00:00",
+  "decoding": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "num_predict": 128,
+    "stream": false,
+    "think": false,
+    "raw": true,
+    "keep_alive": "10m",
+    "model": "qwen3.5:9b"
+  },
+  "num_cases": 300,
+  "benchmark_started_ns": 3791764846681001,
+  "benchmark_finished_ns": 3797593855184012,
+  "total_wall_time_ns": 5829008503011,
+  "first_record": {
+    "id": "case_0001",
+    "total_duration_ns": 179501774912,
+    "load_duration_ns": 154021298418,
+    "prompt_eval_count": 645,
+    "eval_count": 95
+  }
+}
