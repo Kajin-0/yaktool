@@ -93,7 +93,7 @@ pub fn parse_move_frame(input: &str) -> Result<Option<Intent>> {
         return Ok(None);
     }
     let loc = r"(home|desktop|documents|downloads|pictures|archive)";
-    let relation = regex(&format!(r"\bfrom\s+{loc}\s+(?:to|into|in)\s+{loc}\b"))?;
+    let relation = regex(&format!(r"\bfrom\s+{loc}\s+(?:over\s+to|to|into|in)\s+{loc}\b"))?;
     let Some(c) = relation.captures(&s) else { return Ok(None) };
     if c[1] == c[2] { return Ok(None); }
     if regex(&format!(r"\b{loc}\b"))?.find_iter(&s).count() != 2 { return Ok(None); }

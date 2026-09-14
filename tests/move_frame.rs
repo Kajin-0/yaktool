@@ -51,3 +51,15 @@ fn interpreter_uses_move_frame_and_preserves_safe_fallback() {
     assert_eq!(i.filters.min_size_bytes, Some(50_000_000));
     assert!(RuleInterpreter.interpret("move my stuff somewhere").unwrap().action == Action::Clarify);
 }
+
+#[test]
+fn over_to_and_execution_denials_are_deterministic() {
+    for v in ["move", "relocate", "put"] {
+        let r = format!("could you {v} PDFs from downloads over to archive");
+        let i = parse_move_frame(&r).unwrap().unwrap();
+        assert_eq!(i.action, Action::Move);
+    }
+    for r in ["run ls -la", "execute ls", "run rm -rf ~", "execute this command", "bash -c ls", "sh -c ls"] {
+        assert!(RuleInterpreter.interpret(r).unwrap().action != Action::Move, "{r}");
+    }
+}
