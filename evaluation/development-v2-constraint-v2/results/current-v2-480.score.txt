@@ -1,0 +1,4 @@
+current-v2-480.jsonl exact 33.96 action 33.96 valid 100.00 accepted 143 correct 143 unsafe 0 wrong 0 precision 100.00 recall 22.00
+constraint groups {0: (163, 480, 33.958333333333336)} drops {'category': 180, 'age': 180, 'size': 220} invented {'category': 0, 'age': 0, 'size': 0}
+classes {'2_load_moves': (83, 100, 83.0), '3_load_moves': (40, 120, 33.33333333333333), '4_load_moves': (20, 120, 16.666666666666664), '5_load_moves': (0, 100, 0.0), 'ambiguous_adversarial_controls': (20, 40, 50.0)}
+latency median/p95 7.421452739 9.132188920850002
