@@ -3,7 +3,7 @@ import hashlib,json,subprocess,time,urllib.request,urllib.error
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]; BASE=ROOT/'evaluation/development-v2-fallback-v2'; CAND=BASE/'model-candidates.jsonl'; RES=BASE/'results'; RES.mkdir(exist_ok=True)
-OUT=RES/'llama3.2-3b-production.jsonl'; META=RES/'llama3.2-3b-production.meta.json'; SCHEMA=(ROOT/'schemas/model-intent-v1.json').read_text(); MODEL='llama3.2:3b'; CONFIG={'temperature':0,'seed':42,'num_ctx':2048,'num_predict':128,'stream':False,'raw':True,'keep_alive':'10m'}
+OUT=RES/'llama3.2-3b-production-retry.jsonl'; META=RES/'llama3.2-3b-production-retry.meta.json'; SCHEMA=(ROOT/'schemas/model-intent-v1.json').read_text(); MODEL='llama3.2:3b'; CONFIG={'temperature':0,'seed':42,'num_ctx':2048,'num_predict':128,'stream':False,'raw':True,'keep_alive':'10m'}
 PREFIX='You are the semantic intent parser for YakTool. Return exactly one JSON object matching the supplied schema. Interpret only what the user explicitly requests. Allowed actions: list, search, find_large, move, clarify, unsupported. Allowed locations: home, desktop, documents, downloads, pictures, archive. Allowed categories: any, pdf, png, jpeg, text. Missing required information or ambiguity means clarify. Unsupported behavior means unsupported. Never invent semantics. Output JSON only. Canonical empty slots: source none, destination none, category any, age_relation none, age_days 0, size_relation none, size_value 0, size_unit none. JSON schema:\n'
 PROMPT=PREFIX+SCHEMA
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -21,7 +21,7 @@ def main():
    rec={'id':r['id'],'class':r['class'],'template_family':r['template_family'],'request':r['request'],'expected':r['expected'],'model':MODEL,'attempt_count':0,'attempts':[],'model_valid':False,'gate_applied':False,'gate_accepted':False,'final_semantic_output':None}
    for a in range(3):
     rec['attempt_count'] += 1
-    rec['attempts'].append({'attempt':a+1,'timeout_seconds':300 if not done and idx==1 else 180})
+     rec['attempts'].append({'attempt':a+1,'timeout_seconds':900 if not done and idx==1 else 600})
     try:
      x=call(r['request'],rec['attempts'][-1]['timeout_seconds'])
      rec.update({'raw_model_output':x.get('response',''),'total_duration_ns':x.get('total_duration',0),'load_duration_ns':x.get('load_duration',0),'prompt_eval_count':x.get('prompt_eval_count',0),'eval_count':x.get('eval_count',0),'eval_duration_ns':x.get('eval_duration',0),'done_reason':x.get('done_reason','')})
