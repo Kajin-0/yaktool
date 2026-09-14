@@ -5,6 +5,8 @@ pub mod execute;
 pub mod filesystem;
 pub mod intent;
 pub mod interpret;
+pub mod model_client;
+pub mod hybrid_interpret;
 pub mod journal;
 pub mod model_intent;
 pub mod plan;

@@ -2,7 +2,8 @@ use crate::{
     error::{Error, Result},
     execute,
     filesystem::Root,
-    interpret::{Interpreter, RuleInterpreter},
+    hybrid_interpret,
+    model_client::OllamaClient,
     journal::Journal,
     plan::Plan,
     render, resolve,
@@ -17,7 +18,7 @@ use std::{
 #[command(
     version,
     about = "YakTool — Tell your computer what to do.",
-    after_help = "Examples:\n  yaktool \"show Downloads\"\n  yaktool \"find PDFs modified this week in Documents\"\n  yaktool \"find files larger than 500 MB in Downloads\"\n  yaktool \"move PNG files older than 30 days from Downloads to Archive\"\n\nMoves require confirmation. Non-recursive. No shell, overwrite, delete, or AI model."
+    after_help = "Examples:\n  yaktool \"show Downloads\"\n  yaktool \"find PDFs modified this week in Documents\"\n  yaktool \"find files larger than 500 MB in Downloads\"\n  yaktool \"move PNG files older than 30 days from Downloads to Archive\"\n\nMoves require confirmation. Non-recursive. No shell, overwrite, or delete. Deterministic requests are handled locally; unresolved language may use a local semantic model."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -162,7 +163,8 @@ pub fn run(cli: Cli) -> Result<()> {
                     "Supply a quoted request or use --help",
                 )
             })?;
-            let intent = RuleInterpreter.interpret(&input)?;
+            let client = OllamaClient::default();
+            let intent = hybrid_interpret::interpret(&input, &client)?;
             let resolved = resolve::resolve(&root, &intent, chrono::Local::now())?;
             if let Some(plan) = resolved.plan {
                 initialize_data(&root, &path)?;
