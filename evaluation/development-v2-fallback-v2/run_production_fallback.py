@@ -18,7 +18,8 @@ def hardware():
  def cmd(args):
   try: return subprocess.check_output(args,text=True,stderr=subprocess.DEVNULL,timeout=2).strip()
   except Exception: return None
- return {'hostname':platform.node(),'os':platform.platform(aliased=True),'kernel':platform.release(),'architecture':platform.machine(),'logical_cpus':os.cpu_count(),'memory_total_kib':mem('MemTotal'),'swap_total_kib':mem('SwapTotal'),'virtualization':cmd(['systemd-detect-virt','--vm']) if Path('/usr/bin/systemd-detect-virt').exists() else None,'gpu_hint':cmd(['lspci']) if Path('/usr/bin/lspci').exists() else None,'ollama_version':cmd(['ollama','--version'])}
+ host_hash = hashlib.sha256(platform.node().encode()).hexdigest()[:16]
+ return {'host_id':host_hash,'os':platform.platform(aliased=True),'kernel':platform.release(),'architecture':platform.machine(),'logical_cpus':os.cpu_count(),'memory_total_kib':mem('MemTotal'),'swap_total_kib':mem('SwapTotal'),'virtualization':cmd(['systemd-detect-virt','--vm']) if Path('/usr/bin/systemd-detect-virt').exists() else None,'gpu_hint':cmd(['lspci']) if Path('/usr/bin/lspci').exists() else None,'ollama_version':cmd(['ollama','--version'])}
 def call(req,timeout):
  body={'model':MODEL,'prompt':PROMPT+'\nUser request:\n'+req+'\nJSON:','format':json.loads(SCHEMA),**CONFIG,'options':{k:CONFIG[k] for k in ('temperature','seed','num_ctx','num_predict')}}
  b=json.dumps(body).encode(); q=urllib.request.Request('http://127.0.0.1:11434/api/generate',data=b,headers={'Content-Type':'application/json'})
