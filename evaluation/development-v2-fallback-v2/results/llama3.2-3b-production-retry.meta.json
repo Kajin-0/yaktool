@@ -1,0 +1,43 @@
+{
+  "model": "llama3.2:3b",
+  "candidate_sha256": "4358940c99f8c66919908b43293a014add3f643131feafdc0001055a47954b7c",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "production_head": "5e3fed0b0c074cec5092bb3ff55d30d54f99c3a6",
+  "model_client_sha256": "cb1e87d1c169604d992efa89f4969fe8edf500475e73076da20499de404ad7af",
+  "hybrid_interpreter_sha256": "abe6593fafa1ac8fffb8c8cbf92f13537afa19e98894731d81acdd9048d643d4",
+  "prompt_sha256": "dba78b93c7f9c1af764ab50b80b670a470bf1fd8c11a9f3ed6bb532c8fd90a1c",
+  "config": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048,
+    "num_predict": 128,
+    "stream": false,
+    "raw": true,
+    "keep_alive": "10m"
+  },
+  "candidate_count": 176,
+  "runner_sha256": "6278541f941d9b3c33e4463ecd3c7f294772de9324d07f53f3048d36813c695b",
+  "canary_ids": [
+    "fallback_v2_0001",
+    "fallback_v2_0002",
+    "fallback_v2_0003",
+    "fallback_v2_0004",
+    "fallback_v2_0005",
+    "fallback_v2_0006",
+    "fallback_v2_0102",
+    "fallback_v2_0103",
+    "fallback_v2_0151",
+    "fallback_v2_0152",
+    "fallback_v2_0181",
+    "fallback_v2_0182"
+  ],
+  "started": 1789419434.849402,
+  "resume_count": 0,
+  "status": "INCOMPLETE / CANARY-ONLY",
+  "completed_count": 0,
+  "canary_attempted": 1,
+  "canary_completed": 0,
+  "request_timeout_seconds": {"first": 900, "subsequent": 600},
+  "no_progress_watchdog_seconds": 1200,
+  "exhausted_infrastructure_failures": 1
+}
