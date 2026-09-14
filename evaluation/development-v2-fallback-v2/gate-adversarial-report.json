@@ -1,0 +1,111 @@
+{
+  "candidate_corpus_sha256": "4358940c99f8c66919908b43293a014add3f643131feafdc0001055a47954b7c",
+  "corruption": {
+    "categories": {
+      "Dropped age": {
+        "accepted": 0,
+        "generated": 50,
+        "rejected": 50
+      },
+      "Dropped category": {
+        "accepted": 0,
+        "generated": 52,
+        "rejected": 52
+      },
+      "Dropped size": {
+        "accepted": 0,
+        "generated": 50,
+        "rejected": 50
+      },
+      "Invented age": {
+        "accepted": 0,
+        "generated": 270,
+        "rejected": 270
+      },
+      "Invented category": {
+        "accepted": 0,
+        "generated": 172,
+        "rejected": 172
+      },
+      "Invented size": {
+        "accepted": 0,
+        "generated": 270,
+        "rejected": 270
+      },
+      "Multi-slot corruption": {
+        "accepted": 0,
+        "generated": 475,
+        "rejected": 475
+      },
+      "Source/destination swap": {
+        "accepted": 0,
+        "generated": 95,
+        "rejected": 95
+      },
+      "Wrong age relation": {
+        "accepted": 0,
+        "generated": 50,
+        "rejected": 50
+      },
+      "Wrong age value": {
+        "accepted": 0,
+        "generated": 50,
+        "rejected": 50
+      },
+      "Wrong category": {
+        "accepted": 0,
+        "generated": 156,
+        "rejected": 156
+      },
+      "Wrong destination": {
+        "accepted": 0,
+        "generated": 475,
+        "rejected": 475
+      },
+      "Wrong size semantics": {
+        "accepted": 0,
+        "generated": 300,
+        "rejected": 300
+      },
+      "Wrong source": {
+        "accepted": 0,
+        "generated": 475,
+        "rejected": 475
+      }
+    },
+    "total_accepted": 0,
+    "total_generated": 2992,
+    "total_rejected": 2992
+  },
+  "deterministic": true,
+  "gold_move_count": 95,
+  "oracle": {
+    "accepted": 176,
+    "clarify": {
+      "accepted": 30,
+      "cases": 30,
+      "rejected": 0
+    },
+    "move": {
+      "accepted": 95,
+      "cases": 95,
+      "rejected": 0
+    },
+    "read_only": {
+      "accepted": 33,
+      "cases": 33,
+      "rejected": 0
+    },
+    "rejected": 0,
+    "total": 176,
+    "unsupported": {
+      "accepted": 18,
+      "cases": 18,
+      "rejected": 0
+    }
+  },
+  "request_side_adversarial": {
+    "accepted": 0,
+    "cases": 7
+  }
+}
