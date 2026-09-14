@@ -34,6 +34,11 @@ pub fn extract_move_evidence(request: &str) -> Result<MoveEvidence> {
     let s = request.trim().trim_end_matches('.').to_ascii_lowercase();
     let unsupported = Regex::new(r"\b(copy|duplicate|sync|backup|delete|erase|remove|rename|compress|upload|download|install|execute|run|chmod|sudo|overwrite|touch)\b|\b(?:don't|do not|never)\s+move\b|\b(?:except|excluding|but not)\b|\b(?:and|then)\s+(?:delete|copy|rename|overwrite|chmod|run|execute)\b").unwrap();
     if unsupported.is_match(&s) { return Ok(MoveEvidence { action_explicit:false, source:Evidence::Conflict, destination:Evidence::Conflict, category:Evidence::Conflict, age:Evidence::Conflict, size:Evidence::Conflict }); }
+    let loc_words = r"(home|desktop|documents|downloads|pictures|archive)";
+    if Regex::new(&format!(r"\bfrom\s+{loc_words}\s+and\s+{loc_words}\b")).unwrap().is_match(&s)
+        || Regex::new(&format!(r"\b(?:to|into|over\s+to)\s+{loc_words}\s+or\s+{loc_words}\b")).unwrap().is_match(&s) {
+        return Ok(MoveEvidence { action_explicit:true, source:Evidence::Conflict, destination:Evidence::Conflict, category:Evidence::Conflict, age:Evidence::Conflict, size:Evidence::Conflict });
+    }
     let action_explicit = Regex::new(r"\b(?:move|moved|moving|relocate|relocated|put|send|sent|transfer|take|place|placing|arrange|have|belong)\b").unwrap().is_match(&s);
     let loc = r"(home|desktop|documents|downloads|pictures|archive)";
     let from = Regex::new(&format!(r"\b(?:from|out\s+of)\s+{loc}\b")).unwrap();
