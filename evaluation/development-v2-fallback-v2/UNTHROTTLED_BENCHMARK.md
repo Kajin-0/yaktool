@@ -51,6 +51,16 @@ The namespace contains:
 - `llama3.2-3b-production.meta.json` — identity, canary, hardware, and config
 - `FALLBACK_MODEL_EVALUATION.md` — generated final or partial report
 
+The runner records transport completion separately from `json_parse_valid`,
+Rust `ModelIntent` deserialization/validation, normalization, gate acceptance,
+and final semantic output. The scorer uses the 176 model-candidate universe
+(not the 200-case source corpus), canonicalizes gold and actual semantics via
+the Rust helper, and reports raw ModelIntent exactness separately from
+normalized semantic exactness and mutation-gate precision/recall. A complete
+fallback run has 176 terminal records; a whole fallback-focused development
+score combines those 176 model cases with the 24 deterministic cases to cover
+200 cases without additional inference.
+
 Hardware metadata records an anonymized host identifier, OS/kernel,
 architecture, logical CPU count, RAM/swap, virtualization/GPU hints where
 available, Ollama version, and visible backend/offload information. CPU-only

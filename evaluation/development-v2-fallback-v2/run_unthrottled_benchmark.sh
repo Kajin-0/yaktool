@@ -77,6 +77,7 @@ echo "Building production semantic helper..."
 cargo build --manifest-path "$ROOT/evaluation/hybrid-v2/rust_helper/Cargo.toml"
 
 HELPER="$ROOT/evaluation/hybrid-v2/rust_helper/target/debug/yaktool-v2-helper"
+python3 "$BASE/test_helper.py"
 python3 - "$CAND" "$HELPER" <<'PY'
 import json, subprocess, sys
 rows=[json.loads(x) for x in open(sys.argv[1], encoding='utf-8') if x.strip()]
@@ -86,6 +87,7 @@ assert len(out)==len(rows), (len(out),len(rows))
 assert all(x.get('route')=='needs_model' for x in out), {x.get('route') for x in out}
 print('production fallback partition PASS', len(out))
 PY
+python3 "$BASE/test_score_unthrottled.py"
 
 export YAKTOOL_RESULT_DIR="$RESULT_DIR"
 export YAKTOOL_RESULT_JSONL="$OUT"
