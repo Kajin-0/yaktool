@@ -10,7 +10,22 @@ def main():
  q=['please','when convenient','if possible','for me','today','as requested','at your convenience','right away','for this task','in one step','without delay','when ready','as soon as possible','for review','this time','in practice','for now','on my behalf','as a favor','in the usual way','without changing anything else','using the usual folders','for this request','with care','as discussed','in a single operation','when you can','for the moment','as instructed','in the normal way']
  move_templates=["I'd like the {cat} files in {s} moved into {d}.","Take the {cat} files from {s} and put them in {d}.","Could you relocate {cat} files sitting in {s} over to {d}?","Please transfer the {cat} files from {s} to {d}.","The {cat} files in {s} should be moved into {d}.","Send {cat} files from {s} into {d}.","Move the {cat} files currently in {s} across to {d}.","Would you move {cat} files from {s} over to {d}?", "Put the {cat} files found in {s} in {d}.","I need {cat} files from {s} relocated to {d}.","Please have the {cat} files in {s} go to {d}.","The {cat} documents located at {s} belong in {d}.","Could the {cat} files from {s} be sent into {d}?","Move into {d} the {cat} files that are in {s}.","From {s}, move all {cat} files to {d}.","Arrange for {cat} files in {s} to end up in {d}.","I'd appreciate moving {cat} files out of {s} and into {d}.","Have YakTool place the {cat} files from {s} within {d}.","The destination for {cat} files from {s} is {d}; move them there.","Move {cat} files located under {s}, placing them in {d}."]
  for j in range(100):
-  s,d=rng.sample(LOC,2); _,cat=rng.choice(CATS); t=move_templates[j%len(move_templates)]; rows.append({'id':f'fallback_v2_{len(rows)+1:04d}','class':'resolvable_move','template_family':f'move_family_{j%len(move_templates)}','request':t.format(cat=cat,s=s,d=d)+' '+q[j%len(q)],'expected':dict(empty('move'),source=s,destination=d,category=cat)})
+  s,d=rng.sample(LOC,2); _,cat=rng.choice(CATS); age_rel='none'; size_rel='none'; age_days=0; size_value=0; size_unit='none'; extras=''
+  if j<20: cat='any'
+  elif j<45: # 3-load: category, age, or size
+   mode=(j-20)%3
+   if mode==0: pass
+   elif mode==1: cat='any'; age_rel='older_than'; age_days=10+(j%5)*10; extras=f' older than {age_days} days'
+   elif mode==2: cat='any'; size_rel='larger_than'; size_value=5+(j%4)*5; size_unit=['MB','MiB','GB','GiB'][j%4]; extras=f' larger than {size_value} {size_unit}'
+  elif j<75: # 4-load: category+age, category+size, age+size
+   mode=(j-45)%3
+   if mode==2: cat='any'
+   if mode!=1: age_rel='older_than'; age_days=10+(j%5)*10; extras+=f' older than {age_days} days'
+   if mode!=0: size_rel='larger_than'; size_value=5+(j%4)*5; size_unit=['MB','MiB','GB','GiB'][j%4]; extras+=f' larger than {size_value} {size_unit}'
+  else: # 5-load
+   age_rel='older_than'; age_days=10+(j%5)*10; size_rel='larger_than'; size_value=5+(j%4)*5; size_unit=['MB','MiB','GB','GiB'][j%4]; extras=f' older than {age_days} days larger than {size_value} {size_unit}'
+  t=move_templates[j%len(move_templates)]; phrase=t.format(cat='any' if cat=='any' else cat,s=s,d=d)+extras+' '+q[j%len(q)]
+  rows.append({'id':f'fallback_v2_{len(rows)+1:04d}','class':'resolvable_move','template_family':f'move_family_{j%len(move_templates)}','request':phrase,'expected':dict(empty('move'),source=s,destination=d,category=cat,age_relation=age_rel,age_days=age_days,size_relation=size_rel,size_value=size_value,size_unit=size_unit)})
  ro_templates=["Show me the {cat} files in {s}.","Which {cat} files are sitting in {s}?","Can you display {cat} files from {s}?","I want to see the {cat} documents located in {s}.","Find {cat} files in {s} for me.","What {cat} files are in {s}?","Please list the {cat} files under {s}.","Search {s} for {cat} files.","I'd like a list of {cat} files from {s}.","Look for {cat} files within {s}.","Tell me which {cat} items are stored in {s}.","Could you locate {cat} files held in {s}?"]
  for j in range(50):
   s=rng.choice(LOC); _,cat=rng.choice(CATS); t=ro_templates[j%len(ro_templates)]; rows.append({'id':f'fallback_v2_{len(rows)+1:04d}','class':'resolvable_read_only','template_family':f'read_family_{j%len(ro_templates)}','request':t.format(cat=cat,s=s)+' '+q[j%25],'expected':dict(empty('search'),source=s,category=cat)})
