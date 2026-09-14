@@ -1,0 +1,8 @@
+Corrected 480-case development corpus (Llama 3.2 3B)
+
+variant,exact,accepted_moves,correct_moves,unsafe_fp,wrong_slot,precision,recall
+A current full V2,33.96%,143,143,0,0,100.00%,32.50% (143/440)
+B structured prompt,38.12%,163,163,0,0,100.00%,37.05% (163/440)
+E post-model conservative slot replay,38.12%,163,163,0,0,100.00%,37.05% (163/440)
+F deterministic-first conservative replay,38.12%,163,163,0,0,100.00%,37.05% (163/440)
+G two-pass action classifier,not run (would require new inference),,,,,
