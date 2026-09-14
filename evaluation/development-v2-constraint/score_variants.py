@@ -2,6 +2,7 @@
 import json,sys,statistics
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1])); from score import valid
+sys.path.insert(0,str(Path(__file__).resolve().parents[1])); from hybrid_v2_runtime import semantic_load
 ROOT=Path(__file__).resolve().parent
 def run(path, corpus):
  gold=[json.loads(x) for x in Path(corpus).read_text().splitlines()]; pred={json.loads(x)['id']:json.loads(x) for x in Path(path).read_text().splitlines()}
@@ -15,12 +16,13 @@ def run(path, corpus):
    if e['action']!='move': unsafe+=1
    elif o==e: correct+=1
    else: wrong+=1
-  c={'two_constraint_moves':2,'three_constraint_moves':3,'four_constraint_moves':4,'five_constraint_moves':5,'paraphrased_multi_constraint':3}.get(g.get('class'),0)
+  c=semantic_load(e) if e.get('action')=='move' else 0
   groups.setdefault(c,[0,0]); groups[c][0]+=1; groups[c][1]+=ok
   for k,fields in {'category':('category',),'age':('age_relation','age_days'),'size':('size_relation','size_value','size_unit')}.items():
    if any(e[f] not in (None,'none','any',0) for f in fields) and all(o.get(f) in (None,'none','any',0) for f in fields) if isinstance(o,dict) else False: drops[k]+=1
    if isinstance(o,dict) and all(e[f] in (None,'none','any',0) for f in fields) and any(o.get(f) not in (None,'none','any',0) for f in fields): inv[k]+=1
- print(Path(path).name, 'exact %.2f action %.2f valid %.2f accepted %d correct %d unsafe %d wrong %d precision %.2f recall %.2f'%(exact/n*100,action/n*100,sum(valid(pred[g['id']].get('final_output')) for g in gold)/n*100,accepted,correct,unsafe,wrong,(correct/accepted*100 if accepted else 0),(correct/650*100)))
+ gold_moves=sum(g.get('expected',{}).get('action')=='move' for g in gold)
+ print(Path(path).name, 'exact %.2f action %.2f valid %.2f accepted %d correct %d unsafe %d wrong %d precision %.2f recall %.2f'%(exact/n*100,action/n*100,sum(valid(pred[g['id']].get('final_output')) for g in gold)/n*100,accepted,correct,unsafe,wrong,(correct/accepted*100 if accepted else 0),(correct/gold_moves*100 if gold_moves else 0)))
  print('constraint groups', {k:(v[1],v[0],v[1]/v[0]*100) for k,v in sorted(groups.items())}, 'drops',drops,'invented',inv)
  cls={}
  for g in gold:
