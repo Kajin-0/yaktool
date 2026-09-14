@@ -1,10 +1,75 @@
-use crate::{error::{Error, Result}, intent::{Action, Intent, Location}, interpret::{Interpreter, RuleInterpreter, parse_move_frame}, model_client::SemanticModel};
+use crate::{error::{Error, Result}, intent::{Action, Age, Intent, Location}, interpret::{Interpreter, RuleInterpreter, parse_move_frame}, model_client::SemanticModel};
 use regex::Regex;
 
 fn empty(action: Action) -> Intent { Intent::new(action) }
 fn hard_deny(s: &str) -> bool { let l=s.to_ascii_lowercase(); Regex::new(r"\b(delete|erase|wipe|copy|duplicate|overwrite|sudo|chmod|chown|install|uninstall|shell|command|touch)\b|\b(?:run|execute)\s+(?:the\s+)?(?:shell\s+)?(?:command|[a-z][a-z0-9_-]*(?:\s+-[-a-z0-9]+)?)|\b(?:don't|do not|never)\s+move\b|\b(?:except|excluding|but not)\b").unwrap().is_match(&l) }
 fn read_only(s: &str) -> Option<Intent> {
  let l=s.to_ascii_lowercase(); let re=Regex::new(r"\b(?:in|from|for)\s+(home|desktop|documents|downloads|pictures|archive)\b|\b(?:list|show|find|search)\s+(home|desktop|documents|downloads|pictures|archive)\b").ok()?; let c=re.captures(&l)?; let source=c.get(1).or_else(||c.get(2))?.as_str(); let action=if Regex::new(r"\b(find|search)\b").ok()?.is_match(&l){Action::Search}else if Regex::new(r"\b(list|show)\b").ok()?.is_match(&l){Action::List}else{return None}; let mut i=empty(action); i.source=Some(Location::DirectoryAlias(source.into())); Some(i)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Evidence<T> { Absent, Exact(T), Conflict }
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MoveEvidence {
+    pub action_explicit: bool,
+    pub source: Evidence<String>,
+    pub destination: Evidence<String>,
+    pub category: Evidence<String>,
+    pub age: Evidence<Age>,
+    pub size: Evidence<u64>,
+}
+
+fn unique<T: Clone + Eq>(xs: Vec<T>) -> Evidence<T> {
+    if xs.is_empty() { Evidence::Absent }
+    else if xs.windows(2).all(|w| w[0] == w[1]) { Evidence::Exact(xs[0].clone()) }
+    else if xs.iter().all(|x| *x == xs[0]) { Evidence::Exact(xs[0].clone()) }
+    else { Evidence::Conflict }
+}
+
+/// Extracts independently verifiable fragments from a request. This is
+/// intentionally less strict than `parse_move_frame`: it never constructs an
+/// executable intent and may succeed for a sentence requiring model parsing.
+pub fn extract_move_evidence(request: &str) -> Result<MoveEvidence> {
+    let s = request.trim().trim_end_matches('.').to_ascii_lowercase();
+    let unsupported = Regex::new(r"\b(copy|duplicate|sync|backup|delete|erase|remove|rename|compress|upload|download|install|execute|run|chmod|sudo|overwrite|touch)\b|\b(?:don't|do not|never)\s+move\b|\b(?:except|excluding|but not)\b|\b(?:and|then)\b").unwrap();
+    if unsupported.is_match(&s) { return Ok(MoveEvidence { action_explicit:false, source:Evidence::Conflict, destination:Evidence::Conflict, category:Evidence::Conflict, age:Evidence::Conflict, size:Evidence::Conflict }); }
+    let action_explicit = Regex::new(r"\b(?:move|moved|relocate|relocated|put|send|transfer)\b").unwrap().is_match(&s);
+    let loc = r"(home|desktop|documents|downloads|pictures|archive)";
+    let from = Regex::new(&format!(r"\bfrom\s+{loc}\b")).unwrap();
+    let mut sources: Vec<String> = from.captures_iter(&s).map(|c| c[1].to_string()).collect();
+    if sources.is_empty() {
+        let in_loc = Regex::new(&format!(r"\bin\s+{loc}\b")).unwrap();
+        sources = in_loc.captures_iter(&s).map(|c| c[1].to_string()).collect();
+    }
+    let dest_re = Regex::new(&format!(r"\b(?:over\s+to|to|into)\s+{loc}\b")).unwrap();
+    let destinations: Vec<String> = dest_re.captures_iter(&s).map(|c| c[1].to_string()).collect();
+    let mut categories = Vec::new();
+    for (name, pat) in [("pdf",r"\bpdfs?(?:\s+files?)?\b"),("png",r"\bpngs?(?:\s+files?)?\b"),("jpeg",r"\b(?:jpegs?|jpgs?)(?:\s+files?)?\b"),("text",r"\btext(?:\s+files?)?\b")] {
+        if Regex::new(pat).unwrap().is_match(&s) { categories.push(name.to_string()); }
+    }
+    let age_re = Regex::new(r"\b(older|newer)\s+than\s+([0-9]+)\s+days?\b").unwrap();
+    let mut ages = Vec::new();
+    for c in age_re.captures_iter(&s) { let n=c[2].parse::<u32>().map_err(|_| Error::new("MODEL_INTENT_INVALID","invalid age"))?; if n==0 { return Ok(MoveEvidence{action_explicit:false,source:Evidence::Conflict,destination:Evidence::Conflict,category:Evidence::Conflict,age:Evidence::Conflict,size:Evidence::Conflict}); } ages.push(if &c[1]=="older" {Age::OlderThan(n)} else {Age::NewerThan(n)}); }
+    if s.contains("modified today") { ages.push(Age::Today); }
+    if s.contains("modified this week") { ages.push(Age::ThisWeek); }
+    let size_re=Regex::new(r"\blarger\s+than\s+([0-9]+)\s+(kb|mb|gb|kib|mib|gib)\b").unwrap();
+    let mut sizes=Vec::new(); for c in size_re.captures_iter(&s) { sizes.push(crate::interpret::parse_size(&c[1],&c[2])?); }
+    Ok(MoveEvidence { action_explicit, source:unique(sources), destination:unique(destinations), category:unique(categories), age:unique(ages), size:unique(sizes) })
+}
+
+pub fn gate_model_move(request: &str, proposed: &Intent) -> Result<()> {
+    if proposed.action != Action::Move { return Ok(()); }
+    let e = extract_move_evidence(request)?;
+    if !e.action_explicit { return Err(Error::new("AMBIGUOUS_REQUEST","missing explicit move evidence")); }
+    let loc_name = |l: &Option<Location>| match l { Some(Location::DirectoryAlias(x))=>Some(x.to_ascii_lowercase()), _=>None };
+    let check_loc = |ev: &Evidence<String>, actual: &Option<Location>, label: &str| -> Result<()> { match ev { Evidence::Exact(x) if loc_name(actual).as_deref()==Some(x)=>Ok(()), Evidence::Absent if actual.is_none()=>Ok(()), Evidence::Conflict=>Err(Error::new("AMBIGUOUS_REQUEST",format!("{label} evidence conflict"))), _=>Err(Error::new("AMBIGUOUS_REQUEST",format!("{label} evidence mismatch"))) } };
+    check_loc(&e.source,&proposed.source,"source")?; check_loc(&e.destination,&proposed.destination,"destination")?;
+    let actual_cat=if proposed.filters.extensions.is_empty(){None}else if proposed.filters.extensions==[".pdf"]{Some("pdf".to_string())}else if proposed.filters.extensions==[".png"]{Some("png".to_string())}else if proposed.filters.extensions==[".txt"]{Some("text".to_string())}else if proposed.filters.extensions==[".jpg",".jpeg"]{Some("jpeg".to_string())}else{return Err(Error::new("AMBIGUOUS_REQUEST","category mismatch"));};
+    match &e.category { Evidence::Absent => { if actual_cat.is_some() { return Err(Error::new("AMBIGUOUS_REQUEST","category invented")); } }, Evidence::Exact(x) => { if actual_cat.as_deref()!=Some(x) { return Err(Error::new("AMBIGUOUS_REQUEST","category mismatch")); } }, Evidence::Conflict => return Err(Error::new("AMBIGUOUS_REQUEST","category conflict")) }
+    match (&e.age,&proposed.filters.age) { (Evidence::Absent,None)=>(), (Evidence::Exact(a),Some(b)) if a==b=>(), (Evidence::Conflict,_)=>return Err(Error::new("AMBIGUOUS_REQUEST","age conflict")), _=>return Err(Error::new("AMBIGUOUS_REQUEST","age invented, dropped, or mismatched")) }
+    match (&e.size,&proposed.filters.min_size_bytes) { (Evidence::Absent,None)=>(), (Evidence::Exact(v),Some(b)) if v==b=>(), (Evidence::Conflict,_)=>return Err(Error::new("AMBIGUOUS_REQUEST","size conflict")), _=>return Err(Error::new("AMBIGUOUS_REQUEST","size invented, dropped, or mismatched")) }
+    Ok(())
 }
 pub fn interpret<M: SemanticModel>(request: &str, model: &M) -> Result<Intent> {
  if hard_deny(request) { return Ok(empty(Action::Unsupported)); }
@@ -13,8 +78,7 @@ pub fn interpret<M: SemanticModel>(request: &str, model: &M) -> Result<Intent> {
  if let Some(i)=parse_move_frame(request)? { return Ok(i); }
  let mi=model.interpret(request)?; let normalized=mi.normalize()?;
  if mi.action==crate::model_intent::ModelAction::Move {
-   let Some(frame)=parse_move_frame(request)? else { return Err(Error::new("AMBIGUOUS_REQUEST","Model move lacks deterministic evidence")); };
-   if normalized.action!=frame.action || normalized.source.as_ref().map(|x|format!("{:?}",x)) != frame.source.as_ref().map(|x|format!("{:?}",x)) || normalized.destination.as_ref().map(|x|format!("{:?}",x)) != frame.destination.as_ref().map(|x|format!("{:?}",x)) || normalized.filters.extensions!=frame.filters.extensions || normalized.filters.min_size_bytes!=frame.filters.min_size_bytes { return Err(Error::new("AMBIGUOUS_REQUEST","Model move failed evidence gate")); }
+   gate_model_move(request, &normalized)?;
  }
  Ok(normalized)
 }

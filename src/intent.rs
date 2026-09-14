@@ -10,7 +10,7 @@ pub enum Action {
     Clarify,
     Unsupported,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(
     tag = "kind",
     content = "value",
@@ -21,7 +21,7 @@ pub enum Location {
     DirectoryAlias(String),
     PathBytes(Vec<u8>),
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(
     tag = "relation",
     content = "days",
