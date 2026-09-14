@@ -50,6 +50,7 @@ The namespace contains:
 - `llama3.2-3b-production.jsonl` — durable per-case results
 - `llama3.2-3b-production.meta.json` — identity, canary, hardware, and config
 - `FALLBACK_MODEL_EVALUATION.md` — generated final or partial report
+- `WHOLE_DEVELOPMENT_SCORE.json` — generated only after all 176 model cases complete
 
 The runner records transport completion separately from `json_parse_valid`,
 Rust `ModelIntent` deserialization/validation, normalization, gate acceptance,

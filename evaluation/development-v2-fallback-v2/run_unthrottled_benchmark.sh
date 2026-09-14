@@ -106,5 +106,8 @@ set -e
 cleanup
 python3 "$BASE/score_unthrottled.py" "$RESULT_DIR" || score_rc=$?
 score_rc="${score_rc:-0}"
+if [[ "$score_rc" -eq 0 ]]; then
+  python3 "$BASE/score_whole_development.py" "$RESULT_DIR" || score_rc=$?
+fi
 if [[ "$run_rc" -ne 0 ]]; then exit "$run_rc"; fi
 exit "$score_rc"
