@@ -1,0 +1,18 @@
+{
+  "cases": 200,
+  "class_counts": {
+    "genuine_clarify": 30,
+    "resolvable_move": 100,
+    "resolvable_read_only": 50,
+    "unsupported": 20
+  },
+  "corpus_sha256": "9de3673d3780edf543022a722159cab55b8862b941cfe9ee2d68cf281acafb5f",
+  "generator_sha256": "ceb9eb0baa8cb6c3cb91d23011b2f5b71304964094e2ea547ab428dcd77b0346",
+  "model_candidates_sha256": "ceb33623c41a39ae592195f2acee5512c46739d0373c04ecddca748c93fc26d3",
+  "router_source_sha256": "5a9f8261805eb04f6e4c6b917df6c5915234cb253c82123c03e1334dd132fd88",
+  "rust_helper_sha256": "f3f62286b1cb698582f462dbca879e8827cc7a2d375b1ad669ed0959d2a556d3",
+  "schema_sha256": "aa86b201fa0c8045385a98a790e7a3236d17070bcf8a8f2efbc4ba408bf21996",
+  "seed": 20260917,
+  "validator_sha256": "d3bc068653e2cb87b15a10bbe870f8dc5733475d444f6a2b2576c23385bb53fd",
+  "version": "development-v2-fallback-v2"
+}
