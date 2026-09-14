@@ -23,7 +23,10 @@ helper = ROOT / 'evaluation/hybrid-v2/rust_helper/target/debug/yaktool-v2-helper
 if not helper.exists(): raise SystemExit('build Rust helper before scoring')
 gold_input = ''.join(json.dumps({'request': x['request'], 'model_intent': x['expected']})+'\n' for x in CAND)
 gold_proc = subprocess.run([str(helper)], input=gold_input, text=True, capture_output=True, check=True)
-gold_proj = {x['id']: json.loads(line)['normalized_projection'] for x, line in zip(CAND, gold_proc.stdout.splitlines())}
+gold_lines = [json.loads(line) for line in gold_proc.stdout.splitlines() if line.strip()]
+if len(gold_lines) != 176 or any(not x.get('normalization_valid') for x in gold_lines):
+    raise SystemExit('Rust could not normalize all 176 gold ModelIntents')
+gold_proj = {x['id']: line['normalized_projection'] for x, line in zip(CAND, gold_lines)}
 def proj(row): return row.get('final_projection') or row.get('normalized_projection')
 classes = {}
 for g in CAND:
