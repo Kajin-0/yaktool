@@ -1,0 +1,8 @@
+[package]
+name = "yaktool-v2-helper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yaktool = { path = "../../../" }
+serde_json = "1"
