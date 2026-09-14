@@ -21,7 +21,7 @@ def main():
    rec={'id':r['id'],'class':r['class'],'template_family':r['template_family'],'request':r['request'],'expected':r['expected'],'model':MODEL,'attempt_count':0,'attempts':[],'model_valid':False,'gate_applied':False,'gate_accepted':False,'final_semantic_output':None}
    for a in range(3):
     rec['attempt_count'] += 1
-     rec['attempts'].append({'attempt':a+1,'timeout_seconds':900 if not done and idx==1 else 600})
+    rec['attempts'].append({'attempt':a+1,'timeout_seconds':900 if not done and idx==1 else 600})
     try:
      x=call(r['request'],rec['attempts'][-1]['timeout_seconds'])
      rec.update({'raw_model_output':x.get('response',''),'total_duration_ns':x.get('total_duration',0),'load_duration_ns':x.get('load_duration',0),'prompt_eval_count':x.get('prompt_eval_count',0),'eval_count':x.get('eval_count',0),'eval_duration_ns':x.get('eval_duration',0),'done_reason':x.get('done_reason','')})
