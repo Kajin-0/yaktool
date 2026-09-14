@@ -32,18 +32,31 @@ fn unique<T: Clone + Eq>(xs: Vec<T>) -> Evidence<T> {
 /// executable intent and may succeed for a sentence requiring model parsing.
 pub fn extract_move_evidence(request: &str) -> Result<MoveEvidence> {
     let s = request.trim().trim_end_matches('.').to_ascii_lowercase();
-    let unsupported = Regex::new(r"\b(copy|duplicate|sync|backup|delete|erase|remove|rename|compress|upload|download|install|execute|run|chmod|sudo|overwrite|touch)\b|\b(?:don't|do not|never)\s+move\b|\b(?:except|excluding|but not)\b|\b(?:and|then)\b").unwrap();
+    let unsupported = Regex::new(r"\b(copy|duplicate|sync|backup|delete|erase|remove|rename|compress|upload|download|install|execute|run|chmod|sudo|overwrite|touch)\b|\b(?:don't|do not|never)\s+move\b|\b(?:except|excluding|but not)\b|\b(?:and|then)\s+(?:delete|copy|rename|overwrite|chmod|run|execute)\b").unwrap();
     if unsupported.is_match(&s) { return Ok(MoveEvidence { action_explicit:false, source:Evidence::Conflict, destination:Evidence::Conflict, category:Evidence::Conflict, age:Evidence::Conflict, size:Evidence::Conflict }); }
-    let action_explicit = Regex::new(r"\b(?:move|moved|relocate|relocated|put|send|transfer)\b").unwrap().is_match(&s);
+    let action_explicit = Regex::new(r"\b(?:move|moved|moving|relocate|relocated|put|send|sent|transfer|take|place|placing|arrange|have|belong)\b").unwrap().is_match(&s);
     let loc = r"(home|desktop|documents|downloads|pictures|archive)";
-    let from = Regex::new(&format!(r"\bfrom\s+{loc}\b")).unwrap();
+    let from = Regex::new(&format!(r"\b(?:from|out\s+of)\s+{loc}\b")).unwrap();
     let mut sources: Vec<String> = from.captures_iter(&s).map(|c| c[1].to_string()).collect();
     if sources.is_empty() {
-        let in_loc = Regex::new(&format!(r"\bin\s+{loc}\b")).unwrap();
-        sources = in_loc.captures_iter(&s).map(|c| c[1].to_string()).collect();
+        let in_loc = Regex::new(&format!(r"\b(?:in|under|at)\s+{loc}\b")).unwrap();
+        let all: Vec<String> = in_loc.captures_iter(&s).map(|c| c[1].to_string()).collect();
+        sources = if all.len() > 1 { vec![all[0].clone()] } else { all };
     }
-    let dest_re = Regex::new(&format!(r"\b(?:over\s+to|to|into)\s+{loc}\b")).unwrap();
-    let destinations: Vec<String> = dest_re.captures_iter(&s).map(|c| c[1].to_string()).collect();
+    let dest_re = Regex::new(&format!(r"\b(?:over\s+to|to|into|within)\s+{loc}\b")).unwrap();
+    let mut destinations: Vec<String> = dest_re.captures_iter(&s).map(|c| c[1].to_string()).collect();
+    if destinations.is_empty() {
+        let named = Regex::new(&format!(r"\bdestination\s+for\b.*?\b(?:is|=)\s+{loc}\b")).unwrap();
+        destinations = named.captures_iter(&s).filter_map(|c| c.get(1).map(|m|m.as_str().to_string())).collect();
+    }
+    if destinations.is_empty() {
+        let belong = Regex::new(&format!(r"\bbelong(?:s)?\s+in\s+{loc}\b")).unwrap();
+        destinations = belong.captures_iter(&s).filter_map(|c| c.get(1).map(|m|m.as_str().to_string())).collect();
+    }
+    if destinations.is_empty() && !sources.is_empty() {
+        let in_locs: Vec<String> = Regex::new(&format!(r"\bin\s+{loc}\b")).unwrap().captures_iter(&s).map(|c| c[1].to_string()).collect();
+        destinations = in_locs.into_iter().filter(|x| !sources.contains(x)).collect();
+    }
     let mut categories = Vec::new();
     for (name, pat) in [("pdf",r"\bpdfs?(?:\s+files?)?\b"),("png",r"\bpngs?(?:\s+files?)?\b"),("jpeg",r"\b(?:jpegs?|jpgs?)(?:\s+files?)?\b"),("text",r"\btext(?:\s+files?)?\b")] {
         if Regex::new(pat).unwrap().is_match(&s) { categories.push(name.to_string()); }
