@@ -1,0 +1,14 @@
+Variant J deterministic move-frame first (offline, saved fallbacks)
+
+480 corpus: 366/440 move frames matched, 366 correct, 0 incorrect, 74 no-match;
+precision 100%, recall 83.18%. By load: 2=83/100, 3=100/120, 4=100/120,
+5=83/100. Controls produced 0 deterministic moves.
+
+Variant B -> J: exact 38.12% -> 80.42%; mutation recall 37.05% -> 83.18%;
+mutation precision remained 100%, unsafe FP 0, wrong-slot 0. Saved fallback
+count was reduced by 366 requests (83.18% of moves).
+
+600 regression: exact 62.67% -> 81.17%; straightforward 81% -> 83%;
+paraphrased 83% -> 83%; constraint-rich 10.67% -> 83.33%; read-only 50%
+-> 50%; mutation recall 51.43% -> 83.14%; precision remained 100%.
+No model inference was performed.
