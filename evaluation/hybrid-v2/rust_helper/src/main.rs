@@ -1,5 +1,5 @@
 use std::io::{self, BufRead};
-use yaktool::{interpret::parse_move_frame, hybrid_interpret::{route_without_model, RouteDecision}};
+use yaktool::hybrid_interpret::{route_without_model, RouteDecision};
 fn main() {
  for line in io::stdin().lock().lines() {
   let request: String = serde_json::from_str::<serde_json::Value>(&line.unwrap()).unwrap()["request"].as_str().unwrap().to_owned();
