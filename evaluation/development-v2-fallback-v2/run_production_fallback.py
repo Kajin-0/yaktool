@@ -55,13 +55,15 @@ def main():
                     started_ns = time.perf_counter_ns()
                     x = call(r['request'], rec['attempts'][-1]['timeout_seconds'])
                     rec['wall_duration_ms'] = (time.perf_counter_ns() - started_ns) / 1_000_000
+                    rec['response_completed'] = True
+                    rec['json_parse_valid'] = False
                     rec.update({'raw_model_output': x.get('response', ''), 'total_duration_ns': x.get('total_duration', 0),
                         'load_duration_ns': x.get('load_duration', 0), 'prompt_eval_count': x.get('prompt_eval_count', 0),
                         'eval_count': x.get('eval_count', 0), 'eval_duration_ns': x.get('eval_duration', 0),
                         'done_reason': x.get('done_reason', '')})
                     mi = json.loads(x.get('response', ''))
                     rec['parsed_model_intent'] = mi
-                    rec['model_valid'] = True
+                    rec['json_parse_valid'] = True
                 except Exception as e:
                     rec['model_error'] = str(e)
                     rec['attempts'][-1]['error'] = str(e)
@@ -69,18 +71,21 @@ def main():
                 p = subprocess.run([str(HELPER)], input=json.dumps({'request': r['request'], 'model_intent': mi}) + '\n',
                                    text=True, capture_output=True, check=False)
                 out = json.loads(p.stdout.strip()) if p.stdout.strip() else {'accepted': False}
-                rec['gate_applied'] = True
-                rec['gate_accepted'] = bool(out.get('accepted'))
-                rec['final_semantic_output'] = out.get('intent')
-                rec['gate_reason'] = None if rec['gate_accepted'] else 'rejected_by_production_validation_or_evidence_gate'
+                rec.update({k: out.get(k) for k in ('response_completed','model_intent_deserialized','model_intent_valid','normalization_valid','normalized_intent','normalized_projection','gate_applied','gate_accepted','final_intent','final_projection','failure_stage','failure_reason') if k in out})
+                rec['model_valid'] = bool(out.get('model_intent_valid'))
+                rec['gate_applied'] = bool(out.get('gate_applied'))
+                rec['gate_accepted'] = bool(out.get('gate_accepted'))
+                rec['final_semantic_output'] = out.get('final_intent')
+                rec['gate_reason'] = out.get('failure_reason') if not rec['gate_accepted'] else None
                 break
+            rec['terminal_status'] = 'semantic_response' if rec.get('response_completed') else 'exhausted_infrastructure_failure'
             f.write(json.dumps(rec, separators=(',', ':')) + '\n')
             f.flush()
             done.add(r['id'])
             print(f'completed: {len(done)}/{len(rows)}', flush=True)
             if idx == len(canary):
                 canary_records = [json.loads(x) for x in OUT.read_text().splitlines() if x.strip() and json.loads(x).get('id') in canary_ids]
-                canary_completed = sum(bool(x.get('model_valid')) for x in canary_records)
+                canary_completed = sum(bool(x.get('response_completed')) for x in canary_records)
                 canary_failed = len(canary_records) - canary_completed
                 print(f'canary: {canary_completed}/{len(canary)} semantic responses, {canary_failed} infrastructure failures', flush=True)
                 if canary_completed < 10 or canary_failed > 2:
