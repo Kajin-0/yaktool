@@ -6,6 +6,7 @@ from datetime import datetime,timezone
 ROOT=Path(__file__).resolve().parent; REPO=ROOT.parents[1]; GOLD=ROOT/'corpus.jsonl'; SCHEMA=REPO/'schemas/model-intent-v1.json'; HELPER=REPO/'evaluation/holdout-v1/rust_helper/target/release/yaktool_holdout_helper'; OUT=ROOT/'results/llama3.2-hybrid-v2.jsonl'; OUT.parent.mkdir(exist_ok=True)
 sys.path.insert(0,str(REPO/'evaluation'))
 from evaluate_hybrid import evidence
+import hybrid_v2_runtime as hv2
 INSTRUCTIONS="""You are the semantic intent parser for YakTool.
 Return exactly one JSON object matching the supplied JSON schema.
 Interpret only what the user explicitly requests.
@@ -17,7 +18,7 @@ Canonical empty slots: source = none; destination = none; category = any; age_re
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def empty(a='clarify'): return {'schema_version':'yaktool.model_intent.v1','action':a,'source':'none','destination':'none','category':'any','age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
 def model_shape(i):
- f=i.get('filters',{}); ex=f.get('extensions',[]); c='any' if not ex else ('pdf' if ex==['.pdf'] else 'png' if ex==['.png'] else 'jpeg' if set(ex)=={'.jpg','.jpeg'} else 'text' if ex==['.txt'] else 'any'); a=f.get('age') or {}; b=f.get('min_size_bytes'); return {'schema_version':'yaktool.model_intent.v1','action':i.get('action'),'source':(i.get('source') or {}).get('value','none'),'destination':(i.get('destination') or {}).get('value','none'),'category':c,'age_relation':a.get('relation','none'),'age_days':a.get('days',0),'size_relation':'none' if b is None else 'larger_than','size_value':0 if b is None else b,'size_unit':'none' if b is None else 'KB'}
+ return hv2.model_intent_from_rule(i)
 def helper(p,req,out=None): p.stdin.write(json.dumps({'request':req,'output':out})+'\n'); p.stdin.flush(); return json.loads(p.stdout.readline())
 def read_only(req):
  s=req.lower(); loc=r'(home|desktop|documents|downloads|pictures|archive)'; lm=re.search(r'\b(?:in|from|for)\s+'+loc+r'\b',s)
@@ -53,9 +54,9 @@ def main():
   for i,g in enumerate(gold,1):
    if g['id'] in old: continue
    req=g['request']; rr=helper(p,req); low=req.lower(); route=''; final=None; rec={'id':g['id'],'request':req,'model_invoked':False,'total_duration_ns':0,'load_duration_ns':0,'prompt_eval_count':0,'eval_count':0,'eval_duration_ns':0,'done_reason':''}
-   if re.search(r'\b(delete|erase|wipe|sudo|chmod|chown|install|uninstall|copy|overwrite|shell|command|don.t move|do not move|never move|except|excluding)\b',low): route='hard_deny'; final=empty('unsupported')
+   if hv2.hard_deny(req): route='hard_deny'; final=empty('unsupported')
    elif rr['rule'] in ('List','Search','FindLarge','Move'): route='rule_handled'; final=model_shape(rr['normalized'] or rr['rule_intent'])
-   elif read_only(req): route='v2_readonly'; final=read_only(req)
+   elif hv2.read_only(req): route='v2_readonly'; final=hv2.read_only(req)
    else:
     route='model_fallback'; prompt=INSTRUCTIONS+'\nJSON schema:\n'+schema; payload={'model':model,'messages':[{'role':'system','content':prompt},{'role':'user','content':req}],'format':json.loads(schema),'stream':False,'think':False,'keep_alive':'10m','options':{'temperature':0,'seed':42,'num_ctx':2048,'num_predict':128}}
     try:

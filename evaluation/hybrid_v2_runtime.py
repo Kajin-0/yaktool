@@ -43,3 +43,6 @@ def semantic_load(intent):
     if intent.get("age_relation") not in (None,"none"): n+=1
     if intent.get("size_relation") not in (None,"none"): n+=1
     return n
+
+def model_intent_from_rule(rule_intent):
+    return semantic_from_normalized(rule_intent)

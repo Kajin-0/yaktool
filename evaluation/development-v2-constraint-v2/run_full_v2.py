@@ -2,10 +2,9 @@
 import argparse,json,re,subprocess,sys,time,urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent; REPO=ROOT.parents[1]; SCHEMA=REPO/'schemas/model-intent-v1.json'; HELPER=REPO/'evaluation/holdout-v1/rust_helper/target/release/yaktool_holdout_helper'
-sys.path.insert(0,str(REPO/'evaluation')); from evaluate_hybrid import hard_deny,evidence
+sys.path.insert(0,str(REPO/'evaluation')); from hybrid_v2_runtime import hard_deny,evidence,read_only,empty,model_intent_from_rule
 BASE='''You are the semantic intent parser for YakTool. Return exactly one JSON object matching the supplied JSON schema. Interpret only what the user explicitly requests. Allowed actions: list, search, find_large, move, clarify, unsupported. Allowed locations: home, desktop, documents, downloads, pictures, archive. Allowed categories: any, pdf, png, jpeg, text. Rules: missing required information or genuine ambiguity => clarify; unsupported behavior => unsupported; never invent semantics; a negated or mixed dangerous operation is unsupported; output JSON only. Canonical empty slots: source none, destination none, category any, age_relation none, age_days 0, size_relation none, size_value 0, size_unit none.'''
-def empty(a='clarify'): return {'schema_version':'yaktool.model_intent.v1','action':a,'source':'none','destination':'none','category':'any','age_relation':'none','age_days':0,'size_relation':'none','size_value':0,'size_unit':'none'}
-def ro(req):
+def ro_legacy(req):
  s=req.lower(); loc=r'(home|desktop|documents|downloads|pictures|archive)'; m=re.search(r'\b(?:in|from|for)\s+'+loc+r'\b',s) or re.search(r'\b(?:list|show|find|search)\s+'+loc+r'\b',s)
  if not m:return None
  pre=s[:m.end()]; action='search' if re.search(r'\b(find|search)\b',pre) else 'list' if re.search(r'\b(list|show)\b',pre) else None
@@ -32,14 +31,18 @@ def main():
    if g['id'] in old:continue
    req=g['request']; rec={'id':g['id'],'request':req,'model_invoked':False,'total_duration_ns':0}; rr=helper(p,req)
    if hard_deny(req): route='hard_deny'; final=empty('unsupported')
-   elif rr['rule'] in ('List','Search','FindLarge','Move'): route='rule_handled'; final=empty('clarify')
-   elif ro(req): route='v2_readonly'; final=ro(req)
+   elif rr['rule'] in ('List','Search','FindLarge','Move'): route='rule_handled'; final=model_intent_from_rule(rr.get('normalized') or rr.get('rule_intent'))
+   elif read_only(req): route='v2_readonly'; final=read_only(req)
    else:
     route='model_fallback'; payload={'model':'llama3.2:3b','messages':[{'role':'system','content':BASE+'\nJSON schema:\n'+schema},{'role':'user','content':req}],'format':json.loads(schema),'stream':False,'think':False,'keep_alive':'10m','options':{'temperature':0,'seed':42,'num_ctx':2048,'num_predict':128}}
     rsp=call(payload,180 if first else 60);first=False; raw=rsp.get('message',{}).get('content','');rec.update(model_invoked=True,raw_model_output=raw,total_duration_ns=rsp.get('total_duration',0),model_valid=False)
-    try:o=json.loads(raw); chk=helper(p,req,o); rec['model_valid']=bool(chk.get('model_valid'))
+    try:o=json.loads(raw); rec['parsed_model_output']=o; chk=helper(p,req,o); rec['model_valid']=bool(chk.get('model_valid'))
     except Exception:o={'_invalid_json':True}
-    final=empty() if not rec['model_valid'] else (o if o.get('action')!='move' or evidence(req,o)[0] else empty())
+    rec['pregate_output']=o if rec['model_valid'] else None
+    if not rec['model_valid']: final=empty()
+    elif o.get('action')!='move': final=o
+    else:
+     ok,reason=evidence(req,o); rec['gate_passed']=ok; rec['gate_reason']=reason; final=o if ok else empty()
    rec.update(route=route,final_output=final);f.write(json.dumps(rec,separators=(',',':'))+'\n');f.flush();print(f'{i}/{len(rows)} {route}',flush=True)
  p.terminate();p.wait()
 if __name__=='__main__':main()

@@ -3,6 +3,7 @@ import argparse,hashlib,json,re,subprocess,sys,time,urllib.request
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1])); from score import valid
 from evaluate_hybrid import hard_deny,evidence
+import hybrid_v2_runtime as hv2
 ROOT=Path(__file__).resolve().parent; SCHEMA=ROOT.parents[1]/'schemas/model-intent-v1.json'; HELPER=ROOT.parents[1]/'evaluation/holdout-v1/rust_helper/target/release/yaktool_holdout_helper'
 BASE='''You are the semantic intent parser for YakTool. Return exactly one JSON object matching the supplied JSON schema. Interpret only what the user explicitly requests. Allowed actions: list, search, find_large, move, clarify, unsupported. Allowed locations: home, desktop, documents, downloads, pictures, archive. Allowed categories: any, pdf, png, jpeg, text. Rules: missing required information or genuine ambiguity => clarify; unsupported behavior => unsupported; never invent semantics; a negated or mixed dangerous operation is unsupported; output JSON only. Canonical empty slots: source none, destination none, category any, age_relation none, age_days 0, size_relation none, size_value 0, size_unit none.'''
 STRUCT='''Determine the requested action first. Then independently copy each explicitly stated semantic slot: source, destination, category, age, and size. Never drop a stated constraint and never infer an unstated one. If required information is missing, clarify; unsupported behavior is unsupported. Emit only final ModelIntent JSON.'''
@@ -28,7 +29,7 @@ def main():
   for i,g in enumerate(rows,1):
    if g['id'] in old:continue
    req=g['request']; route=''; final=None; rec={'id':g['id'],'request':req,'model_invoked':False,'total_duration_ns':0,'eval_count':0,'eval_duration_ns':0}
-   if hard_deny(req):route='hard_deny';final=empty('unsupported')
+   if hv2.hard_deny(req):route='hard_deny';final=empty('unsupported')
    else:
     rr=json.loads((lambda: (h.stdin.write(json.dumps({'request':req,'output':None})+'\n'),h.stdin.flush(),h.stdout.readline())[2])());
     if rr['rule'] in ('List','Search','FindLarge','Move'): route='rule_handled'; final=empty('clarify')
