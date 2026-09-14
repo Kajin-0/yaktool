@@ -76,6 +76,56 @@ fn filters(s: &str) -> Result<Option<Filters>> {
     }
     Ok(Some(f))
 }
+
+/// Parse the complete, closed-vocabulary move frame without touching the filesystem.
+/// Returns `None` whenever the request is ambiguous or contains unrepresentable
+/// semantics; callers must then preserve the existing fail-closed behavior.
+pub fn parse_move_frame(input: &str) -> Result<Option<Intent>> {
+    let s = input.trim().trim_end_matches('.').to_ascii_lowercase();
+    if regex(r"\b(copy|duplicate|sync|backup|delete|erase|remove|rename|compress|upload|download|install|execute|run|chmod|sudo|overwrite|touch)\b")?.is_match(&s)
+        || regex(r"\b(?:don't|do not|never)\s+move\b|\b(?:except|excluding|but not)\b")?.is_match(&s)
+        || regex(r"\b(?:and|then)\b")?.is_match(&s)
+    {
+        return Ok(None);
+    }
+    let verbs = regex(r"\b(move|relocate|put)\b")?.find_iter(&s).count();
+    if verbs != 1 {
+        return Ok(None);
+    }
+    let loc = r"(home|desktop|documents|downloads|pictures|archive)";
+    let relation = regex(&format!(r"\bfrom\s+{loc}\s+(?:to|into|in)\s+{loc}\b"))?;
+    let Some(c) = relation.captures(&s) else { return Ok(None) };
+    if c[1] == c[2] { return Ok(None); }
+    if regex(&format!(r"\b{loc}\b"))?.find_iter(&s).count() != 2 { return Ok(None); }
+
+    let mut category = None;
+    for (name, pattern) in [("pdf", r"\bpdfs?(?:\s+files?)?\b"), ("png", r"\bpngs?(?:\s+files?)?\b"), ("jpeg", r"\b(?:jpegs?|jpgs?)(?:\s+files?)?\b"), ("text", r"\btext(?:\s+files?)?\b")] {
+        if regex(pattern)?.is_match(&s) {
+            if category.replace(name).is_some() { return Ok(None); }
+        }
+    }
+    let age_re = regex(r"\b(older|newer)\s+than\s+([0-9]+)\s+days?\b")?;
+    let age_count = age_re.find_iter(&s).count()
+        + regex(r"\bmodified\s+(?:today|this\s+week)\b")?.find_iter(&s).count();
+    if age_count > 1 { return Ok(None); }
+    let age = if let Some(a) = age_re.captures(&s) {
+        let n = a[2].parse::<u32>().map_err(|_| Error::new("UNSUPPORTED_REQUEST", "Invalid day count"))?;
+        if n == 0 { return Ok(None); }
+        Some(if &a[1] == "older" { Age::OlderThan(n) } else { Age::NewerThan(n) })
+    } else if s.contains("modified today") { Some(Age::Today) }
+    else if s.contains("modified this week") { Some(Age::ThisWeek) } else { None };
+    let size_re = regex(r"\blarger\s+than\s+([0-9]+)\s+(kb|mb|gb|kib|mib|gib)\b")?;
+    if size_re.find_iter(&s).count() > 1 { return Ok(None); }
+    let size = if let Some(z) = size_re.captures(&s) {
+        Some(parse_size(&z[1], &z[2])?)
+    } else { None };
+
+    let mut i = Intent::new(Action::Move);
+    i.source = Some(Location::DirectoryAlias(c[1].into()));
+    i.destination = Some(Location::DirectoryAlias(c[2].into()));
+    i.filters = Filters { extensions: match category { Some("pdf") => vec![".pdf".into()], Some("png") => vec![".png".into()], Some("jpeg") => vec![".jpg".into(), ".jpeg".into()], Some("text") => vec![".txt".into()], _ => vec![] }, age, min_size_bytes: size };
+    Ok(Some(i))
+}
 impl Interpreter for RuleInterpreter {
     fn interpret(&self, input: &str) -> Result<Intent> {
         if input.len() > 4096 {
@@ -121,6 +171,9 @@ impl Interpreter for RuleInterpreter {
                     return Ok(i);
                 }
             }
+        }
+        if let Some(i) = parse_move_frame(&normalized)? {
+            return Ok(i);
         }
         let mut i = Intent::new(if normalized.starts_with("move ") {
             Action::Clarify
