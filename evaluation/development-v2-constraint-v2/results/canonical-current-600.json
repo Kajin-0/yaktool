@@ -1,0 +1,37 @@
+{
+  "cases": 600,
+  "gold_moves": 350,
+  "raw_action_recoverable": 0,
+  "raw_action_accuracy": null,
+  "final_exact": 0.6266666666666667,
+  "final_action": 0.6683333333333333,
+  "accepted_moves": 180,
+  "correct_moves": 180,
+  "unsafe_fp": 0,
+  "wrong_slot": 0,
+  "mutation_precision": 1.0,
+  "mutation_recall": 0.5142857142857142,
+  "gate_rejections": 0,
+  "load": {
+    "2": [
+      58,
+      37,
+      0.6379310344827587
+    ],
+    "3": [
+      164,
+      130,
+      0.7926829268292683
+    ],
+    "4": [
+      89,
+      13,
+      0.14606741573033707
+    ],
+    "5": [
+      39,
+      0,
+      0.0
+    ]
+  }
+}
