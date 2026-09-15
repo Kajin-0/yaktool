@@ -12,7 +12,7 @@ pub enum PolicyDecision {
 }
 pub fn decision(action: &Action) -> PolicyDecision {
     match action {
-        Action::List | Action::Search | Action::FindLarge => PolicyDecision::Allow,
+        Action::List | Action::Search | Action::FindLarge | Action::CountFiles | Action::CountDirectories => PolicyDecision::Allow,
         Action::Move => PolicyDecision::Confirm,
         _ => PolicyDecision::Deny,
     }

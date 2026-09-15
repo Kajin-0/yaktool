@@ -43,6 +43,9 @@ impl Snapshot {
     pub fn symlink(&self) -> bool {
         self.mode & libc::S_IFMT == libc::S_IFLNK
     }
+    pub fn directory(&self) -> bool {
+        self.mode & libc::S_IFMT == libc::S_IFDIR
+    }
     pub fn identity(&self) -> Identity {
         Identity {
             device_id: self.device_id,

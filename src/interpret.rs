@@ -77,6 +77,22 @@ fn filters(s: &str) -> Result<Option<Filters>> {
     Ok(Some(f))
 }
 
+/// Parse the deliberately closed, non-recursive count vocabulary.
+pub fn parse_count_query(input: &str) -> Result<Option<Intent>> {
+    let normalized = input.trim().trim_end_matches(['?', '.']).split_whitespace().collect::<Vec<_>>().join(" ").to_ascii_lowercase();
+    let alias = r"(home|desktop|documents|downloads|pictures|archive)";
+    for (kind, action) in [("directories|folders", Action::CountDirectories), ("files", Action::CountFiles)] {
+        let pattern = format!(r"^(?:how many (?:{kind})(?: are)? in {alias}|count (?:{kind}) in {alias})$");
+        if let Some(c) = regex(&pattern)?.captures(&normalized) {
+            let mut intent = Intent::new(action);
+            let location = c.iter().skip(1).flatten().next().ok_or_else(|| Error::new("INTERNAL_ERROR", "Count location missing"))?;
+            intent.source = Some(Location::DirectoryAlias(location.as_str().into()));
+            return Ok(Some(intent));
+        }
+    }
+    Ok(None)
+}
+
 /// Parse the complete, closed-vocabulary move frame without touching the filesystem.
 /// Returns `None` whenever the request is ambiguous or contains unrepresentable
 /// semantics; callers must then preserve the existing fail-closed behavior.
@@ -171,6 +187,9 @@ impl Interpreter for RuleInterpreter {
                     return Ok(i);
                 }
             }
+        }
+        if let Some(i) = parse_count_query(&normalized)? {
+            return Ok(i);
         }
         if let Some(i) = parse_move_frame(&normalized)? {
             return Ok(i);

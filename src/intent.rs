@@ -6,6 +6,8 @@ pub enum Action {
     List,
     Search,
     FindLarge,
+    CountFiles,
+    CountDirectories,
     Move,
     Clarify,
     Unsupported,

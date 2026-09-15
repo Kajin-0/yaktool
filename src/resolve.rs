@@ -130,7 +130,13 @@ pub fn resolve(root: &Root, intent: &Intent, now: DateTime<Local>) -> Result<Res
         {
             continue;
         }
-        if intent.action != Action::List && !s.regular() {
+        if intent.action == Action::CountFiles && !s.regular() {
+            continue;
+        }
+        if intent.action == Action::CountDirectories && !s.directory() {
+            continue;
+        }
+        if !matches!(intent.action, Action::List | Action::CountFiles | Action::CountDirectories) && !s.regular() {
             if intent.action == Action::Move {
                 return Err(Error::new(
                     if s.symlink() {
