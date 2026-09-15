@@ -18,7 +18,7 @@ use std::{
 #[command(
     version,
     about = "YakTool — Tell your computer what to do.",
-    after_help = "Examples:\n  yaktool \"show Downloads\"\n  yaktool \"find PDFs modified this week in Documents\"\n  yaktool \"find files larger than 500 MB in Downloads\"\n  yaktool \"move PNG files older than 30 days from Downloads to Archive\"\n\nMoves require confirmation. Non-recursive. No shell, overwrite, or delete. Deterministic requests are handled locally; unresolved language may use a local semantic model."
+    after_help = "Examples:\n  yaktool \"show Downloads\"\n  yaktool \"how many directories in home?\"\n  yaktool \"count files in Downloads\"\n  yaktool \"find PDFs modified this week in Documents\"\n  yaktool \"find files larger than 500 MB in Downloads\"\n  yaktool \"move PNG files older than 30 days from Downloads to Archive\"\n\nMoves require confirmation. Non-recursive. No shell, overwrite, or delete. Deterministic requests are handled locally; unresolved language may use a local semantic model."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -164,12 +164,21 @@ pub fn run(cli: Cli) -> Result<()> {
                 )
             })?;
             let client = OllamaClient::default();
-            let intent = hybrid_interpret::interpret(&input, &client)?;
+            let intent = hybrid_interpret::interpret_with_fallback_notice(&input, &client, || {
+                eprintln!("Using local model to interpret request...");
+                let _ = io::stderr().flush();
+            })?;
             let resolved = resolve::resolve(&root, &intent, chrono::Local::now())?;
             if let Some(plan) = resolved.plan {
                 initialize_data(&root, &path)?;
                 let mut journal = Journal::open(&path)?;
                 mutate(&root, plan, &mut journal)?;
+            } else if matches!(intent.action, crate::intent::Action::CountFiles | crate::intent::Action::CountDirectories) {
+                let singular = intent.action == crate::intent::Action::CountFiles;
+                let noun = if singular { "file" } else { "directory" };
+                let count = resolved.entries.len();
+                let plural = if singular { "files" } else { "directories" };
+                println!("{} {}", count, if count == 1 { noun } else { plural });
             } else {
                 for (p, s) in &resolved.entries {
                     println!("{}", render::entry(p, s));

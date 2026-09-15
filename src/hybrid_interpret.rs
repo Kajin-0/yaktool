@@ -1,4 +1,4 @@
-use crate::{error::{Error, Result}, intent::{Action, Age, Intent, Location}, interpret::{Interpreter, RuleInterpreter, parse_move_frame}, model_client::SemanticModel};
+use crate::{error::{Error, Result}, intent::{Action, Age, Intent, Location}, interpret::{Interpreter, RuleInterpreter, parse_count_query, parse_move_frame}, model_client::SemanticModel};
 use regex::Regex;
 
 fn empty(action: Action) -> Intent { Intent::new(action) }
@@ -90,11 +90,15 @@ pub fn gate_model_move(request: &str, proposed: &Intent) -> Result<()> {
     Ok(())
 }
 pub fn interpret<M: SemanticModel>(request: &str, model: &M) -> Result<Intent> {
- if hard_deny(request) { return Ok(empty(Action::Unsupported)); }
- if let Ok(i)=RuleInterpreter.interpret(request) { if !matches!(i.action,Action::Clarify|Action::Unsupported) { return Ok(i); } }
- if let Some(i)=read_only(request) { return Ok(i); }
- if let Some(i)=parse_move_frame(request)? { return Ok(i); }
- let mi=model.interpret(request)?; let normalized=mi.normalize()?;
+    interpret_with_fallback_notice(request, model, || {})
+}
+pub fn interpret_with_fallback_notice<M: SemanticModel, F: FnOnce()>(request: &str, model: &M, notice: F) -> Result<Intent> {
+ let route = route_without_model(request)?;
+ let mi = match route {
+  RouteDecision::HardDeny(i) | RouteDecision::Deterministic { intent: i, .. } => return Ok(i),
+  RouteDecision::NeedsModel => { notice(); model.interpret(request)? }
+ };
+ let normalized=mi.normalize()?;
  if mi.action==crate::model_intent::ModelAction::Move {
    gate_model_move(request, &normalized)?;
  }
@@ -104,6 +108,7 @@ pub fn interpret<M: SemanticModel>(request: &str, model: &M) -> Result<Intent> {
 pub enum RouteDecision { HardDeny(Intent), Deterministic { stage: &'static str, intent: Intent }, NeedsModel }
 pub fn route_without_model(request: &str) -> Result<RouteDecision> {
  if hard_deny(request) { return Ok(RouteDecision::HardDeny(empty(Action::Unsupported))); }
+ if let Some(i)=parse_count_query(request)? { return Ok(RouteDecision::Deterministic{stage:"count",intent:i}); }
  if let Ok(i)=RuleInterpreter.interpret(request) { if !matches!(i.action,Action::Clarify|Action::Unsupported) { return Ok(RouteDecision::Deterministic{stage:"rule_interpreter",intent:i}); } }
  if let Some(i)=read_only(request) { return Ok(RouteDecision::Deterministic{stage:"read_only",intent:i}); }
  if let Some(i)=parse_move_frame(request)? { return Ok(RouteDecision::Deterministic{stage:"move_frame",intent:i}); }

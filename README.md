@@ -2,7 +2,7 @@
 
 YakTool — Tell your computer what to do.
 
-YakTool 0.1 is a Linux command-line program for a narrow set of local file operations. It uses a deterministic rule interpreter. **No AI model is implemented or required.** The binary runs offline on a CPU, without a daemon, telemetry, credentials, or network requests.
+YakTool 0.1 is a Linux command-line program for a narrow set of local file operations. Deterministic requests execute locally; unresolved language may use a local Ollama semantic model. The model has no filesystem or execution authority, and all actions remain behind YakTool's trusted policy and confirmation pipeline.
 
 The working vertical slice is interpretation → typed intent → read-only resolution → static policy → frozen plan → preview → explicit confirmation → no-replace rename → filesystem verification → SQLite journal → explicit undo.
 
@@ -15,6 +15,8 @@ cargo build --release
 ./target/release/yaktool --help
 ./target/release/yaktool doctor
 ./target/release/yaktool "show Downloads"
+./target/release/yaktool "how many directories in home?"
+./target/release/yaktool "count files in Downloads"
 ./target/release/yaktool "find PDFs modified this week in Documents"
 ./target/release/yaktool "find files larger than 500 MB in Downloads"
 ./target/release/yaktool "move PNG files older than 30 days from Downloads to Archive"
@@ -35,6 +37,7 @@ Each invocation takes one quoted request; there is no conversational session.
 | search | `find PDFs in Downloads`, `find PDF files in downloads`, `find PNG files in Pictures` |
 | date search | `find files older than 30 days in Downloads`, `find PDFs modified this week in Documents`, `find text files modified today in Documents` |
 | find_large | `find files larger than 500 MB in Downloads` |
+| count | `how many directories in home?`, `count files in Downloads` |
 | move | `move PNG files older than 30 days from Downloads to Archive`, `move PDFs from Downloads to Documents` |
 
 The grammar ignores case, repeated whitespace, and trailing periods. Categories are PDF/PDFs (`.pdf`), PNG (`.png`), JPG/JPEG (`.jpg`, `.jpeg`), text (`.txt`), and `files`. Extension comparisons ignore ASCII case. Filters support one size or date qualifier. Fractional sizes, fuzzy sizes, recursion, multiple combined qualifiers, literal paths in natural language, and other English are unsupported. `move my stuff` requests clarification; `delete junk`, `run ls -la`, and `install firefox` are unsupported. None infer operations.
@@ -125,4 +128,4 @@ The existing VPS toolchain lacked rustfmt and Clippy. The implementation session
 
 The future path is Natural language → Local model → Canonical Intent → existing deterministic core. A future interpreter's output remains untrusted. Models interpret; tools act; policies decide; verification proves. The model receives no access to filesystem syscalls, SQLite internals, or arbitrary code execution.
 
-There is no model integration, deletion, overwrite, cross-filesystem copy/delete fallback, recursive traversal, hidden-file mutation option, background service, shell, network API, GUI, plugin system, or configuration language. The strict concurrent-writer gap and crash recovery limits above remain open. JSON schemas in `schemas/` document V1; Rust structures and runtime validation are authoritative. No license was selected because the repository did not specify one.
+Unresolved language may use the local semantic model, but deterministic commands do not contact Ollama. The model cannot access the filesystem, construct plans, choose policy/confirmation, or execute commands. There is no deletion, overwrite, cross-filesystem copy/delete fallback, recursive traversal, hidden-file mutation option, background service, shell, network API, GUI, plugin system, or configuration language. The strict concurrent-writer gap and crash recovery limits above remain open. JSON schemas in `schemas/` document V1; Rust structures and runtime validation are authoritative. No license was selected because the repository did not specify one.

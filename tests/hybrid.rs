@@ -11,6 +11,14 @@ fn model_move() -> ModelIntent { ModelIntent { schema_version:"yaktool.model_int
 struct Offline;
 impl SemanticModel for Offline { fn interpret(&self, _: &str) -> Result<ModelIntent> { Err(Error::new("MODEL_UNAVAILABLE","offline")) } }
 #[test] fn unavailable_model_fails_closed() { assert!(hybrid_interpret::interpret("please organize my files",&Offline).is_err()); }
+#[test] fn fallback_notice_only_on_model_route() {
+    let m=Mock{calls:Cell::new(0)}; let notices=Cell::new(0);
+    let _=hybrid_interpret::interpret_with_fallback_notice("show Downloads",&m,||notices.set(notices.get()+1));
+    let _=hybrid_interpret::interpret_with_fallback_notice("how many directories in home?",&m,||notices.set(notices.get()+1));
+    assert_eq!(notices.get(),0); assert_eq!(m.calls.get(),0);
+    let _=hybrid_interpret::interpret_with_fallback_notice("please organize my files",&m,||notices.set(notices.get()+1));
+    assert_eq!(notices.get(),1); assert_eq!(m.calls.get(),1);
+}
 
 #[test]
 fn fallback_candidate_oracle_and_mutation_rejection() {
